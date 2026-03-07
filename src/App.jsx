@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ShopProvider } from './context/ShopContext'
 import LandingPage from './pages/LandingPage'
 import QuestionnairePage from './pages/QuestionnairePage'
@@ -9,7 +9,7 @@ import Header from './components/layout/Header'
 function App() {
   return (
     <ShopProvider>
-      <BrowserRouter>
+      <HashRouter>
         <div className="min-h-screen bg-stone-50">
           <Header />
           <Routes>
@@ -20,7 +20,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
-      </BrowserRouter>
+      </HashRouter>
     </ShopProvider>
   )
 }
