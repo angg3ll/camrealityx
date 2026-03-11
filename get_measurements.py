@@ -97,12 +97,36 @@ def analyse_measurements(front_path, side_path, user_height_cm):
     shoulder_cm = pixel_distance(front_lm[11], front_lm[12], fw, fh) * front_scale
     waist_w_cm  = pixel_distance(front_lm[23], front_lm[24], fw, fh) * front_scale * 1.3
     hip_w_cm    = pixel_distance(front_lm[23], front_lm[24], fw, fh) * front_scale * 1.5
+    waist_lx    = (front_lm[11].x + front_lm[23].x) / 2
+    waist_rx    = (front_lm[12].x + front_lm[24].x) / 2
+    waist_w_cm  = abs(waist_rx - waist_lx) * fw * front_scale
+
+        # --- Arm length: shoulder → elbow → wrist (both sides averaged) ---
+    left_arm  = pixel_distance(front_lm[11], front_lm[13], fw, fh) * front_scale \
+              + pixel_distance(front_lm[13], front_lm[15], fw, fh) * front_scale
+    right_arm = pixel_distance(front_lm[12], front_lm[14], fw, fh) * front_scale \
+              + pixel_distance(front_lm[14], front_lm[16], fw, fh) * front_scale
+    arm_length_cm = (left_arm + right_arm) / 2
+
+        # --- Leg length: hip → knee → ankle ---
+    leg_length_cm = pixel_distance(front_lm[23], front_lm[25], fw, fh) * front_scale \
+                  + pixel_distance(front_lm[25], front_lm[27], fw, fh) * front_scale
 
     # --- Side measurements (depths) ---
     chest_depth_cm = shoulder_cm * 0.43
     waist_depth_cm = waist_w_cm  * 0.77 
     hip_depth_cm   = hip_w_cm    * 0.65
 
+    # --- Torso length: shoulder mid → hip mid ---
+    shoulder_mid_y  = (front_lm[11].y + front_lm[12].y) / 2 * fh
+    hip_mid_y       = (front_lm[23].y + front_lm[24].y) / 2 * fh
+    torso_length_cm = abs(hip_mid_y - shoulder_mid_y) * front_scale
+
+    # --- Depth estimates ---
+    chest_w_cm     = shoulder_cm * 1.15
+    chest_depth_cm = chest_w_cm  * 0.52
+    waist_depth_cm = waist_w_cm  * 0.72
+    hip_depth_cm   = hip_w_cm    * 0.68
 
     # --- Combine into circumferences ---
     chest_cm = ellipse_circumference(shoulder_cm * 1.15, chest_depth_cm)
@@ -115,14 +139,20 @@ def analyse_measurements(front_path, side_path, user_height_cm):
     print(f"  Chest:     {chest_cm:.1f} cm")
     print(f"  Waist:     {waist_cm:.1f} cm")
     print(f"  Hips:      {hip_cm:.1f} cm")
+    print(f'  Arm Length: {arm_length_cm:.1f} cm')
+    print(f'  Torso Length: {torso_length_cm:.1f} cm')
+    print(f'  Leg Length: {leg_length_cm:.1f} cm')
 
     # --- Save to JSON for Phase 2 ---
     measurements = {
-        "height_cm":    user_height_cm,
-        "shoulders_cm": round(shoulder_cm, 1),
-        "chest_cm":     round(chest_cm, 1),
-        "waist_cm":     round(waist_cm, 1),
-        "hips_cm":      round(hip_cm, 1),
+        "height_cm":       user_height_cm,
+        "shoulders_cm":    round(shoulder_cm, 1),
+        "chest_cm":        round(chest_cm, 1),
+        "waist_cm":        round(waist_cm, 1),
+        "hips_cm":         round(hip_cm, 1),
+        "arm_length_cm":   round(arm_length_cm, 1),
+        "leg_length_cm":   round(leg_length_cm, 1),
+        "torso_length_cm": round(torso_length_cm, 1),
     }
 
     with open('measurements.json', 'w') as f:
@@ -139,6 +169,11 @@ def analyse_measurements(front_path, side_path, user_height_cm):
         x = int(lm_point.x * sw)
         y = int(lm_point.y * sh)
         cv2.circle(side_img, (x, y), 6, (0, 255, 0), -1)
+
+    for a, b in [(11,13),(13,15),(12,14),(14,16)]:
+        x1,y1 = int(front_lm[a].x*fw), int(front_lm[a].y*fh)
+        x2,y2 = int(front_lm[b].x*fw), int(front_lm[b].y*fh)
+        cv2.line(front_img, (x1,y1), (x2,y2), (255,200,0), 2)
 
     '''display_image(cv2.cvtColor(front_img, cv2.COLOR_RGB2BGR), "Front Photo")'''
     display_image(cv2.cvtColor(side_img,  cv2.COLOR_RGB2BGR), "Side Photo")
