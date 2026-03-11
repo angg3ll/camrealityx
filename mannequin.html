@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Social Arcade — Virtual Fitting Room</title>
+<title>RealityX — Virtual Fitting Room</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
@@ -12,25 +12,15 @@
   --bg:#0a0a0b; --panel:#111113; --border:#222226;
   --accent:#c8f542; --text:#ece9e3; --muted:#555560; --deep:#0e0e10;
 }
-body {
-  background:var(--bg); color:var(--text);
-  font-family:'DM Sans',sans-serif;
-  height:100vh; display:flex; flex-direction:column; overflow:hidden;
-}
-header {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:14px 28px; border-bottom:1px solid var(--border);
-  background:var(--panel); position:relative; z-index:100;
-}
-.logo { font-family:'Bebas Neue',sans-serif; font-size:26px; letter-spacing:4px; color:var(--accent); }
+body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+
+header { display:flex; align-items:center; justify-content:space-between; padding:12px 24px; border-bottom:1px solid var(--border); background:var(--panel); position:relative; z-index:100; gap:16px; }
+.logo { font-family:'Bebas Neue',sans-serif; font-size:24px; letter-spacing:4px; color:var(--accent); white-space:nowrap; }
 .logo span { color:var(--text); opacity:0.5; }
-.hm { display:flex; gap:20px; font-size:11px; color:var(--muted); }
+.hm { display:flex; gap:16px; font-size:11px; color:var(--muted); flex-wrap:wrap; }
 .hm strong { color:var(--accent); font-weight:500; }
-.btn {
-  background:transparent; border:1px solid var(--border); color:var(--text);
-  padding:7px 14px; border-radius:6px; font-family:'DM Sans',sans-serif;
-  font-size:12px; cursor:pointer; transition:all 0.2s;
-}
+.header-btns { display:flex; gap:8px; align-items:center; flex-shrink:0; }
+.btn { background:transparent; border:1px solid var(--border); color:var(--text); padding:7px 13px; border-radius:6px; font-family:'DM Sans',sans-serif; font-size:11px; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
 .btn:hover { border-color:var(--accent); color:var(--accent); }
 .btn.primary { background:var(--accent); border-color:var(--accent); color:#000; font-weight:600; }
 .btn.primary:hover { background:#d4ff50; }
@@ -38,117 +28,130 @@ header {
 .main { display:flex; flex:1; overflow:hidden; position:relative; }
 
 /* LEFT */
-.left {
-  width:200px; background:var(--panel); border-right:1px solid var(--border);
-  display:flex; flex-direction:column; position:relative; z-index:50;
-}
-.panel-title {
-  font-family:'Bebas Neue',sans-serif; font-size:11px; letter-spacing:3px;
-  color:var(--muted); padding:16px 16px 10px; border-bottom:1px solid var(--border);
-}
-.cloth-list { flex:1; overflow-y:auto; padding:10px; display:flex; flex-direction:column; gap:8px; }
+.left { width:210px; background:var(--panel); border-right:1px solid var(--border); display:flex; flex-direction:column; position:relative; z-index:50; flex-shrink:0; }
+.panel-title { font-family:'Bebas Neue',sans-serif; font-size:11px; letter-spacing:3px; color:var(--muted); padding:14px 14px 10px; border-bottom:1px solid var(--border); }
+.cloth-list { flex:1; overflow-y:auto; padding:8px; display:flex; flex-direction:column; gap:7px; }
 .cloth-list::-webkit-scrollbar { width:3px; }
 .cloth-list::-webkit-scrollbar-thumb { background:var(--border); }
-.cloth-card {
-  background:var(--deep); border:1px solid var(--border); border-radius:10px;
-  padding:10px; cursor:grab; transition:all 0.2s; user-select:none;
-}
-.cloth-card:hover { border-color:var(--accent); transform:translateY(-2px); box-shadow:0 8px 20px rgba(200,245,66,0.08); }
+.cloth-card { background:var(--deep); border:1px solid var(--border); border-radius:10px; padding:9px; cursor:grab; transition:all 0.2s; user-select:none; }
+.cloth-card:hover { border-color:var(--accent); transform:translateY(-2px); box-shadow:0 6px 18px rgba(200,245,66,0.08); }
 .cloth-card:active { cursor:grabbing; }
-.cloth-preview {
-  width:100%; height:100px; background:#161618; border-radius:6px;
-  display:flex; align-items:center; justify-content:center; overflow:hidden;
-}
+.cloth-preview { width:100%; height:95px; background:#161618; border-radius:6px; display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative; }
 .cloth-preview img { max-width:100%; max-height:100%; object-fit:contain; }
-.cloth-name { font-size:11px; color:var(--muted); margin-top:7px; text-align:center; }
+.cloth-name { font-size:10px; color:var(--muted); margin-top:6px; text-align:center; }
 .cloth-type { font-size:9px; color:var(--accent); text-align:center; margin-top:2px; letter-spacing:1.5px; text-transform:uppercase; }
-.add-btn {
-  margin:10px; padding:9px; background:transparent; border:1px dashed var(--border);
-  border-radius:8px; color:var(--muted); font-family:'DM Sans',sans-serif;
-  font-size:11px; cursor:pointer; transition:all 0.2s;
-}
+.fit-badge { position:absolute; top:4px; right:4px; font-size:8px; padding:2px 5px; border-radius:3px; font-weight:600; letter-spacing:0.5px; }
+.fit-badge.slim { background:rgba(200,245,66,0.15); color:var(--accent); border:1px solid rgba(200,245,66,0.3); }
+.fit-badge.regular { background:rgba(255,255,255,0.06); color:var(--muted); border:1px solid var(--border); }
+.fit-badge.baggy { background:rgba(100,100,255,0.12); color:#8899ff; border:1px solid rgba(100,100,255,0.3); }
+.add-btn { margin:8px; padding:9px; background:transparent; border:1px dashed var(--border); border-radius:8px; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:11px; cursor:pointer; transition:all 0.2s; }
 .add-btn:hover { border-color:var(--accent); color:var(--accent); }
 
 /* STAGE */
 .stage { flex:1; position:relative; overflow:hidden; }
 #c { position:absolute; top:0; left:0; width:100%; height:100%; display:block; }
-.drop-overlay {
-  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-  background:rgba(200,245,66,0.03); border:2px dashed rgba(200,245,66,0.25);
-  opacity:0; transition:opacity 0.2s; pointer-events:none; z-index:10;
-}
+.drop-overlay { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(200,245,66,0.03); border:2px dashed rgba(200,245,66,0.25); opacity:0; transition:opacity 0.2s; pointer-events:none; z-index:10; }
 .drop-overlay.on { opacity:1; }
 .drop-overlay span { font-family:'Bebas Neue',sans-serif; font-size:18px; letter-spacing:3px; color:var(--accent); }
-.hint { position:absolute; bottom:16px; left:50%; transform:translateX(-50%); font-size:10px; color:var(--muted); letter-spacing:1px; pointer-events:none; z-index:10; }
+.hint { position:absolute; bottom:14px; left:50%; transform:translateX(-50%); font-size:10px; color:var(--muted); letter-spacing:1px; pointer-events:none; z-index:10; }
+
+/* Skin picker */
+.skin-btn { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--muted); cursor:pointer; background:transparent; border:1px solid var(--border); padding:5px 10px; border-radius:6px; transition:all 0.2s; }
+.skin-btn:hover { border-color:var(--accent); }
+.skin-dot { width:14px; height:14px; border-radius:50%; border:1px solid rgba(255,255,255,0.2); flex-shrink:0; }
+#skin-picker-popup {
+  position:fixed; top:60px; right:24px; background:var(--panel); border:1px solid var(--border);
+  border-radius:12px; padding:14px; z-index:200; display:none; flex-direction:column; gap:10px;
+  box-shadow:0 12px 40px rgba(0,0,0,0.6);
+}
+#skin-picker-popup.on { display:flex; }
+#skin-picker-popup h4 { font-family:'Bebas Neue',sans-serif; font-size:12px; letter-spacing:2px; color:var(--muted); }
+.skin-swatches { display:flex; gap:8px; flex-wrap:wrap; }
+.skin-swatch { width:28px; height:28px; border-radius:50%; cursor:pointer; border:2px solid transparent; transition:all 0.15s; }
+.skin-swatch:hover { transform:scale(1.15); }
+.skin-swatch.active { border-color:var(--accent); }
+.skin-custom { display:flex; align-items:center; gap:8px; font-size:11px; color:var(--muted); }
+.skin-custom input[type=color] { width:28px; height:28px; border:none; border-radius:50%; cursor:pointer; background:none; padding:0; }
 
 /* RIGHT */
-.right {
-  width:200px; background:var(--panel); border-left:1px solid var(--border);
-  display:flex; flex-direction:column; position:relative; z-index:50;
-}
-.info-block { padding:16px; border-bottom:1px solid var(--border); }
-.mrow { display:flex; justify-content:space-between; margin-bottom:8px; }
+.right { width:210px; background:var(--panel); border-left:1px solid var(--border); display:flex; flex-direction:column; position:relative; z-index:50; flex-shrink:0; }
+.info-block { padding:14px; border-bottom:1px solid var(--border); }
+.mrow { display:flex; justify-content:space-between; margin-bottom:7px; align-items:center; }
 .mrow .ml { font-size:11px; color:var(--muted); }
 .mrow .mv { font-size:12px; font-weight:500; }
 .mrow .mv small { font-size:9px; color:var(--muted); }
-.worn-list { flex:1; overflow-y:auto; padding:10px; display:flex; flex-direction:column; gap:6px; }
-.worn-item {
-  display:flex; align-items:center; gap:8px; padding:7px 8px;
-  background:var(--deep); border-radius:7px; border:1px solid var(--border);
-}
-.swatch { width:28px; height:28px; border-radius:4px; flex-shrink:0; }
+.fit-indicator { font-size:9px; padding:1px 5px; border-radius:3px; font-weight:600; }
+.fit-ok   { background:rgba(200,245,66,0.12); color:var(--accent); }
+.fit-big  { background:rgba(255,100,100,0.12); color:#ff8888; }
+.fit-small{ background:rgba(100,100,255,0.12); color:#8899ff; }
+.worn-list { flex:1; overflow-y:auto; padding:8px; display:flex; flex-direction:column; gap:6px; }
+.worn-item { display:flex; align-items:center; gap:7px; padding:7px 8px; background:var(--deep); border-radius:7px; border:1px solid var(--border); }
+.swatch { width:26px; height:26px; border-radius:4px; flex-shrink:0; }
 .wi-name { font-size:10px; color:var(--text); }
 .wi-type { font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
-.rm { background:none; border:none; color:var(--muted); cursor:pointer; font-size:12px; }
+.rm { background:none; border:none; color:var(--muted); cursor:pointer; font-size:12px; padding:2px; }
 .rm:hover { color:#ff5555; }
-.empty { font-size:11px; color:var(--muted); text-align:center; padding:20px 10px; line-height:1.7; }
-.controls { display:flex; gap:6px; padding:12px; border-top:1px solid var(--border); }
+.empty { font-size:11px; color:var(--muted); text-align:center; padding:20px 8px; line-height:1.7; }
+.controls { display:flex; gap:6px; padding:10px; border-top:1px solid var(--border); }
 
-/* Processing overlay */
-#proc {
-  position:fixed; inset:0; background:rgba(10,10,11,0.9);
+/* Fit settings modal */
+#fit-modal {
+  position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:300;
   display:none; align-items:center; justify-content:center;
-  flex-direction:column; z-index:200;
 }
+#fit-modal.on { display:flex; }
+.modal-box { background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:24px; width:320px; }
+.modal-box h3 { font-family:'Bebas Neue',sans-serif; font-size:18px; letter-spacing:3px; color:var(--accent); margin-bottom:16px; }
+.modal-row { margin-bottom:14px; }
+.modal-row label { font-size:11px; color:var(--muted); display:block; margin-bottom:6px; letter-spacing:0.5px; }
+.modal-row select, .modal-row input[type=range] { width:100%; background:var(--deep); border:1px solid var(--border); color:var(--text); padding:7px 10px; border-radius:6px; font-family:'DM Sans',sans-serif; font-size:12px; cursor:pointer; }
+.modal-row input[type=range] { padding:0; accent-color:var(--accent); }
+.range-val { font-size:11px; color:var(--accent); float:right; }
+.modal-btns { display:flex; gap:8px; margin-top:18px; }
+
+/* Processing + toast */
+#proc { position:fixed; inset:0; background:rgba(10,10,11,0.9); display:none; align-items:center; justify-content:center; flex-direction:column; z-index:400; }
 #proc.on { display:flex; }
-.spin {
-  width:36px; height:36px; border:2px solid var(--border);
-  border-top-color:var(--accent); border-radius:50%;
-  animation:spin 0.8s linear infinite;
-}
+.spin { width:34px; height:34px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; }
 @keyframes spin { to { transform:rotate(360deg); } }
 #proc p { font-size:12px; color:var(--accent); margin-top:12px; letter-spacing:1px; }
-
-/* Toast */
-#toast {
-  position:fixed; bottom:24px; left:50%;
-  transform:translateX(-50%) translateY(60px);
-  background:var(--accent); color:#000; padding:9px 18px;
-  border-radius:8px; font-size:12px; font-weight:500;
-  transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
-  z-index:300; pointer-events:none;
-}
+#toast { position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(60px); background:var(--accent); color:#000; padding:9px 18px; border-radius:8px; font-size:12px; font-weight:500; transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1); z-index:500; pointer-events:none; }
 #toast.on { transform:translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">Social<span>Arcade</span></div>
+  <div class="logo">Reality<span>X</span></div>
   <div class="hm">
-    <span>Height <strong id="hh">175cm</strong></span>
+    <span>H <strong id="hh">175cm</strong></span>
     <span>Chest <strong id="hc">95cm</strong></span>
     <span>Waist <strong id="hw">80cm</strong></span>
     <span>Hips <strong id="hhip">98cm</strong></span>
     <span>Arms <strong id="ha">65cm</strong></span>
   </div>
-  <button class="btn" onclick="document.getElementById('jf').click()">⊕ Load Measurements</button>
-  <input type="file" id="jf" accept=".json" style="display:none" onchange="loadJSON(event)">
+  <div class="header-btns">
+    <button class="skin-btn" onclick="toggleSkinPicker()">
+      <div class="skin-dot" id="skin-dot" style="background:#c68642"></div>
+      Skin
+    </button>
+    <button class="btn" onclick="document.getElementById('jf').click()">⊕ Load Measurements</button>
+    <input type="file" id="jf" accept=".json" style="display:none" onchange="loadJSON(event)">
+  </div>
 </header>
 
-<div class="main">
+<!-- Skin picker popup -->
+<div id="skin-picker-popup">
+  <h4>Skin Tone</h4>
+  <div class="skin-swatches" id="skin-swatches"></div>
+  <div class="skin-custom">
+    <span>Custom:</span>
+    <input type="color" id="custom-skin" value="#c68642" oninput="setSkin(this.value)">
+  </div>
+</div>
 
-  <!-- LEFT PANEL -->
+<div class="main">
+  <!-- LEFT -->
   <div class="left">
     <div class="panel-title">Wardrobe</div>
     <div class="cloth-list" id="cloth-list"></div>
@@ -156,20 +159,17 @@ header {
     <input type="file" id="imgf" accept="image/*" style="display:none" onchange="addItem(event)">
   </div>
 
-  <!-- 3D STAGE -->
-  <div class="stage" id="stage"
-    ondragover="dragOver(event)"
-    ondragleave="dragLeave(event)"
-    ondrop="dropItem(event)">
+  <!-- STAGE -->
+  <div class="stage" id="stage" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropItem(event)">
     <canvas id="c"></canvas>
     <div class="drop-overlay" id="drop-overlay"><span>Drop to Dress</span></div>
     <div class="hint">Drag to rotate · Scroll to zoom</div>
   </div>
 
-  <!-- RIGHT PANEL -->
+  <!-- RIGHT -->
   <div class="right">
     <div class="info-block">
-      <div class="panel-title" style="padding:0 0 14px">Measurements</div>
+      <div class="panel-title" style="padding:0 0 12px">Measurements</div>
       <div class="mrow"><span class="ml">Height</span><span class="mv" id="rh">175<small>cm</small></span></div>
       <div class="mrow"><span class="ml">Chest</span><span class="mv" id="rc">95<small>cm</small></span></div>
       <div class="mrow"><span class="ml">Waist</span><span class="mv" id="rw">80<small>cm</small></span></div>
@@ -177,434 +177,620 @@ header {
       <div class="mrow"><span class="ml">Arms</span><span class="mv" id="ra">65<small>cm</small></span></div>
       <div class="mrow"><span class="ml">Legs</span><span class="mv" id="rl">90<small>cm</small></span></div>
     </div>
-    <div class="panel-title" style="padding:16px 16px 10px">Wearing</div>
+    <div class="panel-title" style="padding:14px 14px 10px">Wearing</div>
     <div class="worn-list" id="worn-list">
-      <div class="empty" id="empty-msg">Drag clothing onto the mannequin to try it on</div>
+      <div class="empty">Drag clothing onto the mannequin</div>
     </div>
     <div class="controls">
       <button class="btn" style="flex:1" onclick="clearOutfit()">Clear</button>
       <button class="btn primary" style="flex:1" onclick="saveOutfit()">Save</button>
     </div>
   </div>
-
 </div>
 
-<!-- Processing overlay -->
-<div id="proc"><div class="spin"></div><p>Removing background…</p></div>
+<!-- Fit Settings Modal -->
+<div id="fit-modal">
+  <div class="modal-box">
+    <h3>Clothing Settings</h3>
+    <div class="modal-row">
+      <label>ITEM NAME</label>
+      <input type="text" id="fit-name" style="width:100%;background:var(--deep);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px;">
+    </div>
+    <div class="modal-row">
+      <label>GARMENT TYPE</label>
+      <select id="fit-type">
+        <option value="upper">Upper (Shirt / Jacket / Hoodie)</option>
+        <option value="lower">Lower (Trousers / Jeans / Shorts)</option>
+      </select>
+    </div>
+    <div class="modal-row">
+      <label>FIT STYLE <span class="range-val" id="fit-style-val">Regular</span></label>
+      <select id="fit-style">
+        <option value="slim">Slim Fit</option>
+        <option value="regular" selected>Regular Fit</option>
+        <option value="baggy">Baggy / Oversized</option>
+        <option value="relaxed">Relaxed Fit</option>
+      </select>
+    </div>
+    <div class="modal-row">
+      <label>GARMENT SIZE (chest/waist cm) <span class="range-val" id="garment-size-val">95cm</span></label>
+      <input type="range" id="garment-size" min="60" max="160" value="95" oninput="document.getElementById('garment-size-val').textContent=this.value+'cm'">
+    </div>
+    <div class="modal-btns">
+      <button class="btn" style="flex:1" onclick="closeFitModal()">Cancel</button>
+      <button class="btn primary" style="flex:1" onclick="confirmFitModal()">Add to Wardrobe</button>
+    </div>
+  </div>
+</div>
+
+<div id="proc"><div class="spin"></div><p>Processing image…</p></div>
 <div id="toast"></div>
 
 <script>
 // ═══════════════════════════════════════════════
-// MEASUREMENTS STATE
+// STATE
 // ═══════════════════════════════════════════════
-let M = {
-  height_cm:175, chest_cm:95, waist_cm:80, hips_cm:98,
-  shoulders_cm:44, arm_length_cm:65, leg_length_cm:90, torso_length_cm:50
-};
-let wearing   = {};
-let dragData  = null;
-let items     = [];
+let M = { height_cm:175, chest_cm:95, waist_cm:80, hips_cm:98, shoulders_cm:44, arm_length_cm:65, leg_length_cm:90, torso_length_cm:50 };
+let wearing  = {};
+let dragData = null;
+let items    = [];
+let skinColor = '#c68642';
+let pendingItem = null; // item waiting for fit modal
+
+// Fit multipliers
+const FIT_SCALE = { slim:1.01, regular:1.035, relaxed:1.065, baggy:1.12 };
 
 // ═══════════════════════════════════════════════
-// THREE.JS
+// SKIN TONES
 // ═══════════════════════════════════════════════
-const canvas   = document.getElementById('c');
-const stageEl  = document.getElementById('stage');
+const SKIN_TONES = [
+  '#FDDBB4','#F1C27D','#E0AC69','#C68642',
+  '#A0522D','#8D5524','#6B3A2A','#3B1F0F',
+  '#F5CBA7','#D4A574','#BC8A5F','#9B6A3E',
+];
 
+function buildSkinSwatches() {
+  const container = document.getElementById('skin-swatches');
+  SKIN_TONES.forEach(c => {
+    const d = document.createElement('div');
+    d.className = 'skin-swatch' + (c===skinColor?' active':'');
+    d.style.background = c;
+    d.onclick = () => setSkin(c);
+    container.appendChild(d);
+  });
+}
+
+function toggleSkinPicker() {
+  document.getElementById('skin-picker-popup').classList.toggle('on');
+}
+
+document.addEventListener('click', e => {
+  const pp = document.getElementById('skin-picker-popup');
+  if (pp.classList.contains('on') && !pp.contains(e.target) && !e.target.closest('.skin-btn')) {
+    pp.classList.remove('on');
+  }
+});
+
+function setSkin(hex) {
+  skinColor = hex;
+  document.getElementById('skin-dot').style.background = hex;
+  document.getElementById('custom-skin').value = hex;
+  document.querySelectorAll('.skin-swatch').forEach(s => s.classList.toggle('active', s.style.background===hex||rgbToHex(s.style.background)===hex.toLowerCase()));
+  // Update body materials
+  const col = new THREE.Color(hex);
+  BODY_MAT.color.set(col);
+  // Slightly darker for joints
+  const dark = col.clone().multiplyScalar(0.75);
+  DARK_MAT.color.set(dark);
+  BODY_MAT.needsUpdate = true;
+  DARK_MAT.needsUpdate = true;
+}
+
+function rgbToHex(rgb) {
+  const m = rgb.match(/\d+/g);
+  if (!m) return rgb;
+  return '#'+[m[0],m[1],m[2]].map(v=>parseInt(v).toString(16).padStart(2,'0')).join('');
+}
+
+// ═══════════════════════════════════════════════
+// THREE.JS SETUP
+// ═══════════════════════════════════════════════
+const canvas  = document.getElementById('c');
+const stageEl = document.getElementById('stage');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:false });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
 renderer.shadowMap.enabled = true;
-renderer.setClearColor(0x0a0a0b, 1);
+renderer.setClearColor(0x0a0a0b,1);
 
 const scene  = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(42, 1, 0.01, 100);
-camera.position.set(0, 0.3, 3.5);
-camera.lookAt(0, 0, 0);
+const camera = new THREE.PerspectiveCamera(42,1,0.01,100);
 
-// Lights
-scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-const key = new THREE.DirectionalLight(0xffffff, 1.4);
-key.position.set(3, 5, 4);
-key.castShadow = true;
-scene.add(key);
-const fill = new THREE.DirectionalLight(0x8899ff, 0.5);
-fill.position.set(-3, 2, -2);
-scene.add(fill);
-const rim = new THREE.DirectionalLight(0xc8f542, 0.25);
-rim.position.set(0, 4, -5);
-scene.add(rim);
+scene.add(new THREE.AmbientLight(0xffffff,0.55));
+const key = new THREE.DirectionalLight(0xffffff,1.3); key.position.set(3,5,4); key.castShadow=true; scene.add(key);
+const fill= new THREE.DirectionalLight(0x8899ff,0.4); fill.position.set(-3,2,-2); scene.add(fill);
+const rim = new THREE.DirectionalLight(0xffeedd,0.3); rim.position.set(0,4,-5); scene.add(rim);
 
-// Floor
-const floor = new THREE.Mesh(
-  new THREE.CircleGeometry(2, 64),
-  new THREE.MeshStandardMaterial({ color:0x111114, roughness:0.9 })
-);
-floor.rotation.x = -Math.PI/2;
-floor.position.y = -1.6;
-floor.receiveShadow = true;
-scene.add(floor);
+const floorMesh = new THREE.Mesh(new THREE.CircleGeometry(2,64), new THREE.MeshStandardMaterial({color:0x111114,roughness:0.9}));
+floorMesh.rotation.x=-Math.PI/2; floorMesh.position.y=-1.6; floorMesh.receiveShadow=true; scene.add(floorMesh);
 
-// Mannequin + clothing groups
 const root     = new THREE.Group();
 const clothGrp = new THREE.Group();
 scene.add(root);
 
-const BODY_MAT = new THREE.MeshStandardMaterial({ color:0x282830, roughness:0.55, metalness:0.25 });
-const DARK_MAT = new THREE.MeshStandardMaterial({ color:0x1a1a22, roughness:0.7,  metalness:0.1  });
+// Skin-tone materials — mutable colors
+const BODY_MAT = new THREE.MeshStandardMaterial({ color:new THREE.Color(skinColor), roughness:0.65, metalness:0.0 });
+const DARK_MAT = new THREE.MeshStandardMaterial({ color:new THREE.Color(skinColor).multiplyScalar(0.75), roughness:0.75, metalness:0.0 });
 
-// Smooth lathe torso
-function latheTorso(rTop, rMid, rBot, h, segs=32) {
-  const pts = [];
-  for (let i=0; i<=24; i++) {
-    const t = i/24;
+// ═══════════════════════════════════════════════
+// LATHE TORSO — smooth bezier curve
+// ═══════════════════════════════════════════════
+function latheTorso(rTop, rMid, rBot, h, segs=40) {
+  const pts=[];
+  for(let i=0;i<=32;i++){
+    const t=i/32;
+    // Smooth cubic interpolation
+    const t2=t*t, t3=t2*t;
     let r;
-    if (t < 0.5) {
-      const u = t*2;
-      r = rTop*(1-u*u) + rMid*u*u;
-    } else {
-      const u = (t-0.5)*2;
-      r = rMid*(1-u) + rBot*u;
+    if(t<0.5){
+      const u=t*2;
+      r=rTop*(1-3*u*u+2*u*u*u)+rMid*(3*u*u-2*u*u*u);
+    }else{
+      const u=(t-0.5)*2;
+      r=rMid*(1-3*u*u+2*u*u*u)+rBot*(3*u*u-2*u*u*u);
     }
-    pts.push(new THREE.Vector2(r, h/2 - t*h));
+    pts.push(new THREE.Vector2(Math.max(r,0.001), h/2-t*h));
   }
-  return new THREE.LatheGeometry(pts, segs);
+  return new THREE.LatheGeometry(pts,segs);
 }
 
-let parts = {};
+let parts={};
 
+// ═══════════════════════════════════════════════
+// BUILD MANNEQUIN
+// ═══════════════════════════════════════════════
 function buildMannequin() {
-  // Clear mannequin (keep clothGrp)
-  while (root.children.length) root.remove(root.children[0]);
+  while(root.children.length) root.remove(root.children[0]);
   root.add(clothGrp);
-  parts = {};
+  parts={};
 
-  const hs   = M.height_cm    / 175;
-  const cs   = M.chest_cm     / 95;
-  const ws   = M.waist_cm     / 80;
-  const hpS  = M.hips_cm      / 98;
-  const ss   = M.shoulders_cm / 44;
-  const arS  = M.arm_length_cm / 65;
-  const lgS  = M.leg_length_cm / 90;
-  const tsS  = M.torso_length_cm / 50;
+  const hs  = M.height_cm/175;
+  const cs  = M.chest_cm/95;
+  const ws  = M.waist_cm/80;
+  const hpS = M.hips_cm/98;
+  const ss  = M.shoulders_cm/44;
+  const arS = M.arm_length_cm/65;
+  const lgS = M.leg_length_cm/90;
+  const tsS = M.torso_length_cm/50;
 
-  const Y0    = -1.6;  // floor
-  const legH  = 0.75 * lgS;
-  const torH  = 0.52 * tsS;
-  const neckH = 0.09;
-  const headR = 0.115 * hs;
+  const Y0    =-1.6;
+  const legH  = 0.75*lgS;
+  const torH  = 0.50*tsS;
+  const neckH = 0.085;
+  const headR = 0.112*hs;
 
-  const chestR = 0.155 * cs;
-  const waistR = 0.115 * ws;
-  const hipR   = 0.165 * hpS;
-  const sW     = 0.215 * ss;
+  const chestR = 0.150*cs;
+  const waistR = 0.110*ws;
+  const hipR   = 0.160*hpS;
+  const sW     = 0.200*ss;   // shoulder width from center
 
-  const torsoY = Y0 + legH + torH/2;
-  const hipY   = Y0 + legH;
-  const neckY  = Y0 + legH + torH + neckH/2;
-  const headY  = Y0 + legH + torH + neckH + headR + 0.01;
+  const torsoY = Y0+legH+torH/2;
+  const hipY   = Y0+legH;
+  const neckY  = Y0+legH+torH+neckH/2;
+  const headY  = Y0+legH+torH+neckH+headR+0.01;
 
   parts = { torsoY, torH, chestR, waistR, hipR, hipY, legH, sW };
 
-  function add(geo, mat, x,y,z, rx=0,ry=0,rz=0) {
-    const m = new THREE.Mesh(geo, mat);
-    m.position.set(x,y,z);
-    m.rotation.set(rx,ry,rz);
-    m.castShadow = true;
-    root.add(m);
-    return m;
+  function add(geo,mat,x,y,z,rx=0,ry=0,rz=0){
+    const m=new THREE.Mesh(geo,mat);
+    m.position.set(x,y,z); m.rotation.set(rx,ry,rz); m.castShadow=true;
+    root.add(m); return m;
   }
 
   // HEAD
   add(new THREE.SphereGeometry(headR,32,32), BODY_MAT, 0,headY,0);
 
   // NECK
-  add(new THREE.CylinderGeometry(0.05,0.055,neckH,20), DARK_MAT, 0,neckY,0);
+  add(new THREE.CylinderGeometry(0.048,0.052,neckH,20), DARK_MAT, 0,neckY,0);
 
-  // TORSO (smooth lathe)
-  add(latheTorso(chestR, waistR, hipR, torH), BODY_MAT, 0,torsoY,0);
+  // TORSO
+  add(latheTorso(chestR,waistR,hipR,torH), BODY_MAT, 0,torsoY,0);
 
   // SHOULDER CAPS
-  [-1,1].forEach(s => add(new THREE.SphereGeometry(0.062*ss,20,20), BODY_MAT, s*sW, torsoY+torH/2-0.04, 0));
+  [-1,1].forEach(s=>add(new THREE.SphereGeometry(0.058*ss,20,20), BODY_MAT, s*sW, torsoY+torH/2-0.035,0));
 
-  // ARMS
-  const armLen = 0.58 * arS;
-  [-1,1].forEach(s => {
-    const uLen = armLen * 0.52;
-    const lLen = armLen * 0.48;
-    const ang  = s * Math.PI/2.1;
-    const sx   = s * sW;
-    const sy   = torsoY + torH/2 - 0.05;
+  // ARMS — hanging naturally close to body, slight angle outward
+  const armLen=0.56*arS;
+  [-1,1].forEach(s=>{
+    const uLen=armLen*0.52;
+    const lLen=armLen*0.48;
+    // Slight outward angle (was PI/2.1, now PI/7 = much more vertical)
+    const ang=s*Math.PI/7;
+    const sx=s*sW;
+    const sy=torsoY+torH/2-0.04;
 
-    // upper
-    const u = add(new THREE.CylinderGeometry(0.038,0.033,uLen,14), BODY_MAT, sx + s*uLen/2*0.92, sy-0.05, 0, 0,0,ang);
-    // elbow
-    const ex = sx + s*uLen*Math.sin(Math.abs(ang));
-    const ey = sy - 0.05 - uLen*Math.cos(Math.abs(ang));
-    add(new THREE.SphereGeometry(0.035,14,14), DARK_MAT, ex,ey,0);
-    // lower
-    add(new THREE.CylinderGeometry(0.033,0.026,lLen,14), DARK_MAT, ex+s*lLen/2*0.5, ey-lLen*0.46, 0, 0,0,s*Math.PI/3.8);
+    // Upper arm
+    const ux=sx+s*uLen*Math.sin(Math.abs(ang))*0.5;
+    const uy=sy-uLen*0.5;
+    add(new THREE.CylinderGeometry(0.036,0.031,uLen,14), BODY_MAT, ux,uy,0, 0,0,ang);
+
+    // Elbow
+    const ex=sx+s*uLen*Math.sin(Math.abs(ang));
+    const ey=sy-uLen*Math.cos(Math.abs(ang));
+    add(new THREE.SphereGeometry(0.032,14,14), DARK_MAT, ex,ey,0);
+
+    // Lower arm — hangs straight down from elbow
+    const lx=ex+s*0.01;
+    const ly=ey-lLen/2;
+    add(new THREE.CylinderGeometry(0.030,0.024,lLen,14), DARK_MAT, lx,ly,0);
+
+    // Hand
+    add(new THREE.SphereGeometry(0.026,12,12), DARK_MAT, lx,ey-lLen,0);
   });
 
-  // HIPS connector
-  add(new THREE.CylinderGeometry(hipR+0.005, hipR+0.005, 0.04, 32), DARK_MAT, 0, hipY+0.02, 0);
+  // HIP CONNECTOR
+  add(new THREE.CylinderGeometry(hipR+0.004,hipR+0.004,0.035,32), DARK_MAT, 0,hipY+0.015,0);
 
   // LEGS
-  [-1,1].forEach(s => {
-    const lx  = s * 0.09 * hpS;
-    const uLH = legH * 0.53;
-    const lLH = legH * 0.47;
-    add(new THREE.CylinderGeometry(0.058,0.048,uLH,16), BODY_MAT, lx, hipY-uLH/2, 0);
-    add(new THREE.SphereGeometry(0.046,14,14), DARK_MAT, lx, hipY-uLH, 0);
-    add(new THREE.CylinderGeometry(0.046,0.034,lLH,16), BODY_MAT, lx, hipY-uLH-lLH/2, 0);
-    const foot = new THREE.Mesh(new THREE.BoxGeometry(0.065,0.04,0.14), DARK_MAT);
-    foot.position.set(lx, Y0+0.02, 0.04);
-    foot.castShadow = true;
-    root.add(foot);
+  [-1,1].forEach(s=>{
+    const lx=s*0.085*hpS;
+    const uLH=legH*0.52;
+    const lLH=legH*0.48;
+    add(new THREE.CylinderGeometry(0.055,0.046,uLH,18), BODY_MAT, lx,hipY-uLH/2,0);
+    add(new THREE.SphereGeometry(0.044,14,14), DARK_MAT, lx,hipY-uLH,0);
+    add(new THREE.CylinderGeometry(0.043,0.032,lLH,16), BODY_MAT, lx,hipY-uLH-lLH/2,0);
+    // Foot
+    const foot=new THREE.Mesh(new THREE.BoxGeometry(0.062,0.038,0.13),DARK_MAT);
+    foot.position.set(lx,Y0+0.019,0.036); foot.castShadow=true; root.add(foot);
   });
 }
 
 // ═══════════════════════════════════════════════
-// CLOTHING ON MANNEQUIN
+// CLOTHING RENDERING
 // ═══════════════════════════════════════════════
 function renderClothing() {
-  while (clothGrp.children.length) clothGrp.remove(clothGrp.children[0]);
-  if (!parts.torsoY) return;
+  while(clothGrp.children.length) clothGrp.remove(clothGrp.children[0]);
+  if(!parts.torsoY) return;
 
-  const { torsoY, torH, chestR, waistR, hipR, hipY, legH, sW } = parts;
+  const {torsoY,torH,chestR,waistR,hipR,hipY,legH,sW} = parts;
 
-  function clothAdd(geo, mat, x,y,z, rx=0,ry=0,rz=0) {
-    const m = new THREE.Mesh(geo, mat);
+  function ca(geo,mat,x,y,z,rx=0,ry=0,rz=0){
+    const m=new THREE.Mesh(geo,mat);
     m.position.set(x,y,z); m.rotation.set(rx,ry,rz); m.castShadow=true;
     clothGrp.add(m);
   }
 
-  if (wearing.upper) {
-    const col = new THREE.Color(wearing.upper.color || '#888');
-    const mat = new THREE.MeshStandardMaterial({ color:col, roughness:0.8, side:THREE.DoubleSide });
+  if(wearing.upper){
+    const item  = wearing.upper;
+    const fs    = FIT_SCALE[item.fitStyle||'regular'];
+    const pad   = fs * 0.018; // how much larger than body
 
-    // Body of garment
-    clothAdd(latheTorso(chestR+0.014, waistR+0.012, hipR+0.006, torH*0.75), mat, 0, torsoY+torH*0.12, 0);
+    const mat = makeClothMat(item);
 
-    // Sleeves
-    const armLen = 0.58 * (M.arm_length_cm/65);
-    [-1,1].forEach(s => {
-      const sLen = armLen * 0.58;
-      const ang  = s*Math.PI/2.1;
-      const sx   = s*sW + s*sLen/2*0.92;
-      const sy   = torsoY+torH/2-0.09;
-      clothAdd(new THREE.CylinderGeometry(0.05,0.044,sLen,14), mat, sx,sy,0, 0,0,ang);
+    // SHIRT BODY — covers chest down past waist, droops over hip
+    const shirtTop = chestR*fs + pad;
+    const shirtMid = waistR*fs + pad*0.8;
+    const shirtBot = hipR*fs   + pad*1.2; // droops over hip slightly
+    const shirtH   = torH*0.88; // longer — covers waist
+
+    ca(latheTorso(shirtTop, shirtMid, shirtBot, shirtH), mat, 0, torsoY+torH*0.06, 0);
+    // Cap top and bottom of shirt so it is fully solid
+    ca(new THREE.CircleGeometry(shirtTop*0.95, 32), mat, 0, torsoY+torH*0.06+shirtH/2, 0, -Math.PI/2,0,0);
+    ca(new THREE.CircleGeometry(shirtBot*0.95, 32), mat, 0, torsoY+torH*0.06-shirtH/2, 0, Math.PI/2,0,0);
+
+    // SLEEVES — follow arm angle, cover arms properly
+    const armLen = 0.56*(M.arm_length_cm/65);
+    const ang    = Math.PI/7;
+    [-1,1].forEach(s=>{
+      const uLen = armLen*0.52;
+      const lLen = armLen*0.48;
+      const sleeveR = 0.040*fs;
+
+      // Upper sleeve
+      const ux = s*sW + s*uLen*Math.sin(ang)*0.5;
+      const uy = torsoY+torH/2-0.04 - uLen*0.5;
+      ca(new THREE.CylinderGeometry(sleeveR+0.004, sleeveR, uLen+0.01, 16), mat, ux,uy,0, 0,0,s*ang);
+
+      // Elbow join
+      const ex = s*sW + s*uLen*Math.sin(ang);
+      const ey = torsoY+torH/2-0.04 - uLen*Math.cos(ang);
+      ca(new THREE.SphereGeometry(sleeveR*0.95,14,14), mat, ex,ey,0);
+
+      // Lower sleeve
+      const lx = ex+s*0.01;
+      const ly = ey-lLen/2;
+      ca(new THREE.CylinderGeometry(sleeveR*0.95, sleeveR*0.78, lLen+0.01, 16), mat, lx,ly,0);
     });
 
-    // Collar ring
-    const colMat = new THREE.MeshStandardMaterial({ color:col, roughness:0.9 });
-    clothAdd(new THREE.TorusGeometry(0.062,0.013,10,32), colMat, 0, torsoY+torH/2, 0, Math.PI/2,0,0);
+    // COLLAR
+    ca(new THREE.TorusGeometry(0.055,0.011,10,32), mat, 0,torsoY+torH/2+0.01,0, Math.PI/2,0,0);
 
-    if (wearing.upper.texture) {
-      new THREE.TextureLoader().load(wearing.upper.texture, t => { mat.map=t; mat.needsUpdate=true; });
-    }
+    // FIT indicator
+    updateFitIndicator('upper', item);
   }
 
-  if (wearing.lower) {
-    const col = new THREE.Color(wearing.lower.color || '#444');
-    const mat = new THREE.MeshStandardMaterial({ color:col, roughness:0.85, side:THREE.DoubleSide });
-    const lgS = M.leg_length_cm/90;
-    const hpS = M.hips_cm/98;
-    const lLen = legH * 0.95;
-
-    // Waistband
-    clothAdd(new THREE.CylinderGeometry(hipR+0.016,hipR+0.012,0.08,32), mat, 0,hipY+0.02,0);
-
-    // Trouser legs
-    [-1,1].forEach(s => {
-      const lx = s*0.09*hpS;
-      clothAdd(new THREE.CylinderGeometry(0.066,0.056,lLen*0.53,16), mat, lx,hipY-lLen*0.53/2,0);
-      clothAdd(new THREE.CylinderGeometry(0.055,0.044,lLen*0.47,16), mat, lx,hipY-lLen*0.53-lLen*0.47/2,0);
+  if(wearing.lower){
+    const item = wearing.lower;
+    const fs   = FIT_SCALE[item.fitStyle||'regular'];
+    const hpS  = M.hips_cm/98;
+    const lLen = legH*0.96;
+    // DoubleSide so interior faces are always rendered — combined with
+    // clothing being LARGER than the leg, the skin can never show through
+    const mat  = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(item.color||'#888888'),
+      roughness:0.82, metalness:0.0,
+      side: THREE.DoubleSide,
+      depthWrite: true,
     });
 
-    if (wearing.lower.texture) {
-      new THREE.TextureLoader().load(wearing.lower.texture, t => { mat.map=t; mat.needsUpdate=true; });
-    }
+    // WAISTBAND
+    const wbR = hipR*fs+0.018;
+    ca(new THREE.CylinderGeometry(wbR, wbR*0.97, 0.08, 32, 1, false), mat, 0,hipY+0.02,0);
+
+    // TROUSER LEGS — single lathe per leg for seamless geometry, no gaps
+    [-1,1].forEach(s=>{
+      const lx   = s*0.085*hpS;
+      const topR = 0.068*fs;   // generously wider than the leg (0.055 body)
+      const kneR = 0.060*fs;
+      const botR = (item.fitStyle==='baggy'||item.fitStyle==='relaxed') ? 0.056*fs : 0.044*fs;
+      const uLH  = lLen*0.52;
+      const lLH  = lLen*0.48;
+      const totalH = uLH + lLH;
+
+      // Build a single lathe profile for the entire leg — no joins, no gaps
+      const pts = [];
+      const steps = 40;
+      for(let i=0;i<=steps;i++){
+        const t = i/steps;
+        const y = totalH/2 - t*totalH;
+        let r;
+        if(t < 0.5){
+          // upper half: topR -> kneR
+          const u = t*2;
+          r = topR*(1-u) + kneR*u;
+        } else {
+          // lower half: kneR -> botR
+          const u = (t-0.5)*2;
+          r = kneR*(1-u) + botR*u;
+        }
+        pts.push(new THREE.Vector2(r, y));
+      }
+      // Close the bottom
+      pts.push(new THREE.Vector2(0, -totalH/2));
+
+      const legGeo = new THREE.LatheGeometry(pts, 24);
+      ca(legGeo, mat, lx, hipY - totalH/2, 0);
+
+      // Top disc cap — seals the very top of the trouser leg
+      ca(new THREE.CircleGeometry(topR, 24), mat, lx, hipY, 0, -Math.PI/2,0,0);
+    });
+
+    updateFitIndicator('lower', item);
   }
 }
 
 // ═══════════════════════════════════════════════
-// ORBIT CONTROLS
+// CLOTHING MATERIAL — solid colour only
 // ═══════════════════════════════════════════════
-let down=false, lx=0, ly=0, rotY=0, rotX=0.05, zoom=3.5;
-canvas.addEventListener('mousedown', e=>{ down=true; lx=e.clientX; ly=e.clientY; });
-window.addEventListener('mouseup',   ()=>down=false);
-window.addEventListener('mousemove', e=>{
-  if(!down) return;
-  rotY += (e.clientX-lx)*0.012; lx=e.clientX;
-  rotX += (e.clientY-ly)*0.006; ly=e.clientY;
-  rotX = Math.max(-0.4, Math.min(0.6, rotX));
-});
-canvas.addEventListener('wheel', e=>{ zoom=Math.max(1.5,Math.min(6,zoom+e.deltaY*0.005)); }, {passive:true});
+function makeClothMat(item) {
+  return new THREE.MeshStandardMaterial({
+    color: new THREE.Color(item.color || '#888888'),
+    roughness: 0.82,
+    metalness: 0.0,
+    side: THREE.FrontSide,
+    transparent: false,
+    depthWrite: true,
+  });
+}
+
+// ═══════════════════════════════════════════════
+// FIT INDICATOR — shows if clothes fit user
+// ═══════════════════════════════════════════════
+function updateFitIndicator(type, item) {
+  if(!item.garmentSize) return;
+  const userSize = type==='upper' ? M.chest_cm : M.waist_cm;
+  const diff     = item.garmentSize - userSize;
+  const el       = document.getElementById('fit-ind-'+type);
+  if(!el) return;
+
+  if(diff < -5) {
+    el.textContent='Too Small'; el.className='fit-indicator fit-small';
+  } else if(diff > 20) {
+    el.textContent='Very Baggy'; el.className='fit-indicator fit-big';
+  } else if(diff > 10) {
+    el.textContent='Loose Fit'; el.className='fit-indicator fit-ok';
+  } else {
+    el.textContent='Good Fit ✓'; el.className='fit-indicator fit-ok';
+  }
+}
 
 // ═══════════════════════════════════════════════
 // DRAG AND DROP
 // ═══════════════════════════════════════════════
-function dragOver(e) {
-  e.preventDefault();
-  document.getElementById('drop-overlay').classList.add('on');
-}
-function dragLeave() {
-  document.getElementById('drop-overlay').classList.remove('on');
-}
+function dragOver(e) { e.preventDefault(); document.getElementById('drop-overlay').classList.add('on'); }
+function dragLeave()  { document.getElementById('drop-overlay').classList.remove('on'); }
 function dropItem(e) {
   e.preventDefault();
   document.getElementById('drop-overlay').classList.remove('on');
-  if (!dragData) return;
-  wearing[dragData.type] = dragData;
+  if(!dragData) return;
+  wearing[dragData.type]=dragData;
   renderClothing();
   renderWorn();
-  toast(dragData.name + ' applied!');
-  dragData = null;
+  toast(dragData.name+' applied!');
+  dragData=null;
 }
 
 // ═══════════════════════════════════════════════
 // CLOTHING PANEL
 // ═══════════════════════════════════════════════
-const SAMPLES = [
-  { name:'White Tee',    type:'upper', color:'#f0ede8', accent:'#d8d5d0' },
-  { name:'Dark Jeans',   type:'lower', color:'#1a2744', accent:'#243460' },
-  { name:'Black Hoodie', type:'upper', color:'#1c1c1e', accent:'#2e2e35' },
-  { name:'Khaki Chinos', type:'lower', color:'#b5a07a', accent:'#9a8a6a' },
-  { name:'Navy Blazer',  type:'upper', color:'#1b2a4a', accent:'#243460' },
+const SAMPLES=[
+  {name:'White Tee',    type:'upper', color:'#f0ede8', fitStyle:'regular', garmentSize:95},
+  {name:'Dark Jeans',   type:'lower', color:'#1a2744', fitStyle:'regular', garmentSize:82},
+  {name:'Black Hoodie', type:'upper', color:'#1c1c1e', fitStyle:'regular', garmentSize:100},
+  {name:'Khaki Chinos', type:'lower', color:'#b5a07a', fitStyle:'slim',    garmentSize:80},
+  {name:'Navy Blazer',  type:'upper', color:'#1b2a4a', fitStyle:'slim',    garmentSize:96},
+  {name:'Baggy Jeans',  type:'lower', color:'#3a4a6a', fitStyle:'baggy',   garmentSize:104},
 ];
 
-function buildPanel() {
-  const list = document.getElementById('cloth-list');
-  list.innerHTML = '';
-  items.forEach(item => {
-    const d = document.createElement('div');
-    d.className = 'cloth-card';
-    d.draggable = true;
-    d.innerHTML = `
+function buildPanel(){
+  const list=document.getElementById('cloth-list');
+  list.innerHTML='';
+  items.forEach(item=>{
+    const d=document.createElement('div');
+    d.className='cloth-card'; d.draggable=true;
+    d.innerHTML=`
       <div class="cloth-preview">
         ${item.processedSrc
-          ? `<img src="${item.processedSrc}" alt="${item.name}">`
-          : `<svg width="50" height="58" viewBox="0 0 50 58">
+          ?`<img src="${item.processedSrc}" alt="${item.name}">`
+          :`<svg width="50" height="58" viewBox="0 0 50 58">
               ${item.type==='upper'
-                ? `<path d="M12 4 L4 16 L12 18 L12 46 L38 46 L38 18 L46 16 L38 4 Q30 10 25 10 Q20 10 12 4Z" fill="${item.color}" stroke="${item.accent}" stroke-width="0.8"/>`
-                : `<path d="M4 4 L7 54 L20 54 L25 26 L30 54 L43 54 L46 4Z" fill="${item.color}" stroke="${item.accent}" stroke-width="0.8"/>`
+                ?`<path d="M12 4 L4 16 L12 18 L12 46 L38 46 L38 18 L46 16 L38 4 Q30 10 25 10 Q20 10 12 4Z" fill="${item.color}" stroke-width="0"/>`
+                :`<path d="M4 4 L7 54 L20 54 L25 26 L30 54 L43 54 L46 4Z" fill="${item.color}" stroke-width="0"/>`
               }
             </svg>`
         }
+        <div class="fit-badge ${item.fitStyle||'regular'}">${(item.fitStyle||'regular').toUpperCase()}</div>
       </div>
       <div class="cloth-name">${item.name}</div>
       <div class="cloth-type">${item.type}</div>
     `;
-    d.addEventListener('dragstart', () => dragData = item);
+    d.addEventListener('dragstart',()=>dragData=item);
     list.appendChild(d);
   });
 }
 
-function addItem(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = async ev => {
-    const src = ev.target.result;
+// ═══════════════════════════════════════════════
+// ADD CUSTOM ITEM — opens fit modal
+// ═══════════════════════════════════════════════
+function addItem(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=async ev=>{
+    const src=ev.target.result;
     document.getElementById('proc').classList.add('on');
-    const processed = await removeBG(src);
+    const processed=await removeBG(src);
     document.getElementById('proc').classList.remove('on');
-    const name = file.name.replace(/\.[^/.]+$/,'');
-    const isLower = /jean|pant|trouser|short|skirt|chino/i.test(name);
-    // Get dominant color
-    const col = await getDominantColor(processed);
-    items.push({ name, type:isLower?'lower':'upper', color:col, accent:col, processedSrc:processed, texture:processed });
-    buildPanel();
-    toast(name + ' added!');
+
+    const name=file.name.replace(/\.[^/.]+$/,'');
+    const col=await getDominantColor(processed); // bg already removed = accurate dominant colour
+    const isLower=/jean|pant|trouser|short|skirt|chino|jogger/i.test(name);
+
+    // Pre-fill modal
+    document.getElementById('fit-name').value=name;
+    document.getElementById('fit-type').value=isLower?'lower':'upper';
+    document.getElementById('garment-size').value=isLower?M.waist_cm:M.chest_cm;
+    document.getElementById('garment-size-val').textContent=(isLower?M.waist_cm:M.chest_cm)+'cm';
+
+    pendingItem={ name, type:isLower?'lower':'upper', color:col, processedSrc:processed, texture:processed };
+    document.getElementById('fit-modal').classList.add('on');
   };
   reader.readAsDataURL(file);
-  e.target.value = '';
+  e.target.value='';
+}
+
+function closeFitModal(){ document.getElementById('fit-modal').classList.remove('on'); pendingItem=null; }
+
+function confirmFitModal(){
+  if(!pendingItem) return;
+  pendingItem.name        = document.getElementById('fit-name').value||pendingItem.name;
+  pendingItem.type        = document.getElementById('fit-type').value;
+  pendingItem.fitStyle    = document.getElementById('fit-style').value;
+  pendingItem.garmentSize = parseInt(document.getElementById('garment-size').value);
+  items.push(pendingItem);
+  buildPanel();
+  toast(pendingItem.name+' added to wardrobe!');
+  closeFitModal();
 }
 
 // ═══════════════════════════════════════════════
 // BACKGROUND REMOVAL
 // ═══════════════════════════════════════════════
-function removeBG(src) {
-  return new Promise(resolve => {
-    const img = new Image();
-    img.onload = () => {
-      const c = document.createElement('canvas');
-      c.width=img.width; c.height=img.height;
-      const ctx = c.getContext('2d');
+function removeBG(src){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      const cv=document.createElement('canvas');
+      cv.width=img.width; cv.height=img.height;
+      const ctx=cv.getContext('2d');
       ctx.drawImage(img,0,0);
-      const id = ctx.getImageData(0,0,c.width,c.height);
-      const d  = id.data;
-      const W  = c.width, H = c.height;
-
-      // Sample background from border pixels
+      const id=ctx.getImageData(0,0,cv.width,cv.height);
+      const d=id.data, W=cv.width, H=cv.height;
+      // Sample border for background colour
       let rS=0,gS=0,bS=0,n=0;
-      for (let x=0;x<W;x++) {
-        [[x,0],[x,H-1]].forEach(([px,py])=>{
-          const i=(py*W+px)*4;
-          rS+=d[i];gS+=d[i+1];bS+=d[i+2];n++;
-        });
+      for(let x=0;x<W;x++){
+        [[x,0],[x,H-1]].forEach(([px,py])=>{const i=(py*W+px)*4;rS+=d[i];gS+=d[i+1];bS+=d[i+2];n++;});
       }
-      for (let y=1;y<H-1;y++) {
-        [[0,y],[W-1,y]].forEach(([px,py])=>{
-          const i=(py*W+px)*4;
-          rS+=d[i];gS+=d[i+1];bS+=d[i+2];n++;
-        });
+      for(let y=1;y<H-1;y++){
+        [[0,y],[W-1,y]].forEach(([px,py])=>{const i=(py*W+px)*4;rS+=d[i];gS+=d[i+1];bS+=d[i+2];n++;});
       }
-      const bgR=rS/n, bgG=gS/n, bgB=bS/n;
-
-      const thr=45;
-      for (let i=0;i<d.length;i+=4) {
-        const dr=d[i]-bgR, dg=d[i+1]-bgG, db=d[i+2]-bgB;
+      const bgR=rS/n,bgG=gS/n,bgB=bS/n;
+      const thr=50;
+      for(let i=0;i<d.length;i+=4){
+        const dr=d[i]-bgR,dg=d[i+1]-bgG,db=d[i+2]-bgB;
         const dist=Math.sqrt(dr*dr+dg*dg+db*db);
-        if (dist<thr) d[i+3]=0;
-        else if (dist<thr*2) d[i+3]=Math.round(((dist-thr)/thr)*255);
+        if(dist<thr) d[i+3]=0;
+        else if(dist<thr*2) d[i+3]=Math.round(((dist-thr)/thr)*255);
       }
       ctx.putImageData(id,0,0);
-      resolve(c.toDataURL('image/png'));
+      resolve(cv.toDataURL('image/png'));
     };
     img.src=src;
   });
 }
 
-function getDominantColor(src) {
-  return new Promise(resolve => {
-    const img = new Image();
-    img.onload = () => {
-      const c = document.createElement('canvas');
-      c.width=16; c.height=16;
-      c.getContext('2d').drawImage(img,0,0,16,16);
-      const d = c.getContext('2d').getImageData(0,0,16,16).data;
+function getDominantColor(src){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      const cv=document.createElement('canvas'); cv.width=100; cv.height=100;
+      cv.getContext('2d').drawImage(img,0,0,100,100);
+      const d=cv.getContext('2d').getImageData(0,0,100,100).data;
       let r=0,g=0,b=0,n=0;
-      for (let i=0;i<d.length;i+=4) {
-        if (d[i+3]>128) { r+=d[i]; g+=d[i+1]; b+=d[i+2]; n++; }
+      for(let i=0;i<d.length;i+=4){
+        const pr=d[i], pg=d[i+1], pb=d[i+2], pa=d[i+3];
+        // Must be opaque (not background-removed pixels)
+        if(pa < 200) continue;
+        const brightness = (pr+pg+pb)/3;
+        // Skip near-white (background remnants) and near-black (shadows)
+        if(brightness > 210) continue;
+        if(brightness < 15)  continue;
+        r+=pr; g+=pg; b+=pb; n++;
       }
-      if (!n) return resolve('#888888');
-      const toHex = v => Math.round(v/n).toString(16).padStart(2,'0');
-      resolve('#'+toHex(r)+toHex(g)+toHex(b));
+      if(!n) return resolve('#888888');
+      const h=v=>Math.round(v/n).toString(16).padStart(2,'0');
+      resolve('#'+h(r)+h(g)+h(b));
     };
     img.src=src;
   });
 }
 
 // ═══════════════════════════════════════════════
-// WORN LIST
+// WORN LIST WITH FIT INDICATORS
 // ═══════════════════════════════════════════════
-function renderWorn() {
-  const list = document.getElementById('worn-list');
-  const wItems = Object.values(wearing);
-  if (!wItems.length) {
-    list.innerHTML = '<div class="empty" id="empty-msg">Drag clothing onto the mannequin to try it on</div>';
+function renderWorn(){
+  const list=document.getElementById('worn-list');
+  const wItems=Object.values(wearing);
+  if(!wItems.length){
+    list.innerHTML='<div class="empty">Drag clothing onto the mannequin</div>';
     return;
   }
-  list.innerHTML = '';
-  wItems.forEach(item => {
-    const d = document.createElement('div');
-    d.className = 'worn-item';
-    d.innerHTML = `
+  list.innerHTML='';
+  wItems.forEach(item=>{
+    const d=document.createElement('div');
+    d.className='worn-item';
+    const userSize=item.type==='upper'?M.chest_cm:M.waist_cm;
+    const diff=item.garmentSize?item.garmentSize-userSize:null;
+    const fitText=diff===null?''
+      :diff<-5?'<span class="fit-indicator fit-small">Too Small</span>'
+      :diff>20?'<span class="fit-indicator fit-big">Very Baggy</span>'
+      :'<span class="fit-indicator fit-ok">Good Fit ✓</span>';
+    d.innerHTML=`
       <div class="swatch" style="background:${item.color}"></div>
       <div style="flex:1">
         <div class="wi-name">${item.name}</div>
-        <div class="wi-type">${item.type}</div>
+        <div style="display:flex;gap:4px;align-items:center;margin-top:2px;">
+          <div class="wi-type">${item.type}</div>
+          <span id="fit-ind-${item.type}">${fitText}</span>
+        </div>
       </div>
       <button class="rm" onclick="removeWorn('${item.type}')">✕</button>
     `;
@@ -612,107 +798,87 @@ function renderWorn() {
   });
 }
 
-function removeWorn(type) {
-  delete wearing[type];
-  renderClothing();
-  renderWorn();
-}
-
-function clearOutfit() {
-  wearing={};
-  renderClothing();
-  renderWorn();
-  toast('Outfit cleared');
-}
-
-function saveOutfit() {
-  const blob = new Blob([JSON.stringify({ measurements:M, wearing:Object.keys(wearing).map(k=>({type:k,name:wearing[k].name})), savedAt:new Date().toISOString() },null,2)],{type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='outfit.json';
-  a.click();
+function removeWorn(type){ delete wearing[type]; renderClothing(); renderWorn(); }
+function clearOutfit(){ wearing={}; renderClothing(); renderWorn(); toast('Outfit cleared'); }
+function saveOutfit(){
+  const blob=new Blob([JSON.stringify({measurements:M,wearing:Object.keys(wearing).map(k=>({type:k,name:wearing[k].name,fitStyle:wearing[k].fitStyle})),savedAt:new Date().toISOString()},null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='outfit.json'; a.click();
   toast('Outfit saved!');
 }
 
 // ═══════════════════════════════════════════════
 // MEASUREMENTS
 // ═══════════════════════════════════════════════
-function loadJSON(e) {
-  const file=e.target.files[0];
-  if(!file) return;
+function loadJSON(e){
+  const file=e.target.files[0]; if(!file) return;
   const r=new FileReader();
   r.onload=ev=>{
-    try {
-      M={...M,...JSON.parse(ev.target.result)};
-      updateDisplays();
-      buildMannequin();
-      renderClothing();
-      toast('Mannequin updated to your measurements!');
-    } catch { toast('Invalid JSON file'); }
+    try{ M={...M,...JSON.parse(ev.target.result)}; updateDisplays(); buildMannequin(); renderClothing(); toast('Mannequin updated!'); }
+    catch{ toast('Invalid JSON'); }
   };
-  r.readAsText(file);
-  e.target.value='';
+  r.readAsText(file); e.target.value='';
 }
 
-function updateDisplays() {
-  const f=(v,u='cm')=>v?`${v}<small>${u}</small>`:'—';
-  document.getElementById('hh').textContent   = M.height_cm    ?M.height_cm+'cm'    :'—';
-  document.getElementById('hc').textContent   = M.chest_cm     ?M.chest_cm+'cm'     :'—';
-  document.getElementById('hw').textContent   = M.waist_cm     ?M.waist_cm+'cm'     :'—';
-  document.getElementById('hhip').textContent = M.hips_cm      ?M.hips_cm+'cm'      :'—';
-  document.getElementById('ha').textContent   = M.arm_length_cm?M.arm_length_cm+'cm':'—';
-  document.getElementById('rh').innerHTML     = f(M.height_cm);
-  document.getElementById('rc').innerHTML     = f(M.chest_cm);
-  document.getElementById('rw').innerHTML     = f(M.waist_cm);
-  document.getElementById('rhip').innerHTML   = f(M.hips_cm);
-  document.getElementById('ra').innerHTML     = f(M.arm_length_cm);
-  document.getElementById('rl').innerHTML     = f(M.leg_length_cm);
+function updateDisplays(){
+  const f=(v)=>v?`${v}<small>cm</small>`:'—';
+  document.getElementById('hh').textContent    =M.height_cm    ?M.height_cm+'cm'    :'—';
+  document.getElementById('hc').textContent    =M.chest_cm     ?M.chest_cm+'cm'     :'—';
+  document.getElementById('hw').textContent    =M.waist_cm     ?M.waist_cm+'cm'     :'—';
+  document.getElementById('hhip').textContent  =M.hips_cm      ?M.hips_cm+'cm'      :'—';
+  document.getElementById('ha').textContent    =M.arm_length_cm?M.arm_length_cm+'cm':'—';
+  document.getElementById('rh').innerHTML      =f(M.height_cm);
+  document.getElementById('rc').innerHTML      =f(M.chest_cm);
+  document.getElementById('rw').innerHTML      =f(M.waist_cm);
+  document.getElementById('rhip').innerHTML    =f(M.hips_cm);
+  document.getElementById('ra').innerHTML      =f(M.arm_length_cm);
+  document.getElementById('rl').innerHTML      =f(M.leg_length_cm);
 }
 
 // ═══════════════════════════════════════════════
-// RESIZE + RENDER LOOP
+// ORBIT + RESIZE + LOOP
 // ═══════════════════════════════════════════════
-function resize() {
-  const w=stageEl.clientWidth, h=stageEl.clientHeight;
-  if (!w||!h) return;
+let down=false,lx=0,ly=0,rotY=0,rotX=0.04,zoom=3.4;
+canvas.addEventListener('mousedown',e=>{down=true;lx=e.clientX;ly=e.clientY;});
+window.addEventListener('mouseup',()=>down=false);
+window.addEventListener('mousemove',e=>{
+  if(!down)return;
+  rotY+=(e.clientX-lx)*0.012; lx=e.clientX;
+  rotX+=(e.clientY-ly)*0.006; ly=e.clientY;
+  rotX=Math.max(-0.4,Math.min(0.6,rotX));
+});
+canvas.addEventListener('wheel',e=>{zoom=Math.max(1.5,Math.min(6,zoom+e.deltaY*0.005));},{passive:true});
+
+function resize(){
+  const w=stageEl.clientWidth,h=stageEl.clientHeight;
+  if(!w||!h)return;
   renderer.setSize(w,h,false);
   camera.aspect=w/h;
   camera.updateProjectionMatrix();
 }
 
-function animate() {
+function animate(){
   requestAnimationFrame(animate);
-  root.rotation.y = rotY;
-  root.rotation.x = rotX;
-  camera.position.x = Math.sin(rotY)*zoom;
-  camera.position.y = 0.3 + rotX*0.5;
-  camera.position.z = Math.cos(rotY)*zoom;
+  root.rotation.y=rotY;
+  root.rotation.x=rotX;
+  camera.position.x=Math.sin(rotY)*zoom;
+  camera.position.y=0.3+rotX*0.5;
+  camera.position.z=Math.cos(rotY)*zoom;
   camera.lookAt(0,0.1,0);
   renderer.render(scene,camera);
 }
 
-// ═══════════════════════════════════════════════
-// TOAST
-// ═══════════════════════════════════════════════
 let toastTimer;
-function toast(msg) {
-  clearTimeout(toastTimer);
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('on');
-  toastTimer=setTimeout(()=>t.classList.remove('on'),2500);
-}
+function toast(msg){ clearTimeout(toastTimer); const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('on'); toastTimer=setTimeout(()=>t.classList.remove('on'),2600); }
 
-// ═══════════════════════════════════════════════
-// INIT — wait for DOM layout to be ready
-// ═══════════════════════════════════════════════
-window.addEventListener('load', () => {
+window.addEventListener('load',()=>{
+  buildSkinSwatches();
   SAMPLES.forEach(s=>items.push(s));
   buildPanel();
   resize();
   buildMannequin();
   animate();
 });
-window.addEventListener('resize', resize);
+window.addEventListener('resize',resize);
 </script>
 </body>
 </html>
