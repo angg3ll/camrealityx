@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RealityX — Virtual Fitting Room</title>
+<title>Social Arcade — Virtual Fitting Room</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
@@ -44,6 +44,7 @@ header { display:flex; align-items:center; justify-content:space-between; paddin
 .fit-badge.slim { background:rgba(200,245,66,0.15); color:var(--accent); border:1px solid rgba(200,245,66,0.3); }
 .fit-badge.regular { background:rgba(255,255,255,0.06); color:var(--muted); border:1px solid var(--border); }
 .fit-badge.baggy { background:rgba(100,100,255,0.12); color:#8899ff; border:1px solid rgba(100,100,255,0.3); }
+.fit-badge.flared { background:rgba(255,180,100,0.12); color:#ffb464; border:1px solid rgba(255,180,100,0.3); }
 .add-btn { margin:8px; padding:9px; background:transparent; border:1px dashed var(--border); border-radius:8px; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:11px; cursor:pointer; transition:all 0.2s; }
 .add-btn:hover { border-color:var(--accent); color:var(--accent); }
 
@@ -122,7 +123,7 @@ header { display:flex; align-items:center; justify-content:space-between; paddin
 <body>
 
 <header>
-  <div class="logo">Reality<span>X</span></div>
+  <div class="logo">Social<span>Arcade</span></div>
   <div class="hm">
     <span>H <strong id="hh">175cm</strong></span>
     <span>Chest <strong id="hc">95cm</strong></span>
@@ -198,7 +199,7 @@ header { display:flex; align-items:center; justify-content:space-between; paddin
     </div>
     <div class="modal-row">
       <label>GARMENT TYPE</label>
-      <select id="fit-type">
+      <select id="fit-type" onchange="onTypeChange(this.value)">
         <option value="upper">Upper (Shirt / Jacket / Hoodie)</option>
         <option value="lower">Lower (Trousers / Jeans / Shorts)</option>
       </select>
@@ -210,6 +211,7 @@ header { display:flex; align-items:center; justify-content:space-between; paddin
         <option value="regular" selected>Regular Fit</option>
         <option value="baggy">Baggy / Oversized</option>
         <option value="relaxed">Relaxed Fit</option>
+        <option value="flared">Flared / Wide Leg</option>
       </select>
     </div>
     <div class="modal-row">
@@ -237,8 +239,90 @@ let items    = [];
 let skinColor = '#c68642';
 let pendingItem = null; // item waiting for fit modal
 
-// Fit multipliers
-const FIT_SCALE = { slim:1.01, regular:1.035, relaxed:1.065, baggy:1.12 };
+// Ease added on top of the garment's actual stated size (cm), per fit style
+// This is fabric drape/ease, not the size itself
+const FIT_EASE_CM = { slim:2, regular:5, relaxed:9, baggy:16, flared:6 };
+
+// Convert a real-world garment circumference (cm) to a 3D radius in scene units.
+function cmToR(circumferenceCm) {
+  return circumferenceCm / (2 * Math.PI) * (0.150 / (95 / (2*Math.PI)));
+}
+
+// Generate a fabric normal map — organic wrinkles, gravity folds, cloth texture
+function makeWrinkleNormalMap(seed=0, intensity=0.55) {
+  const sz = 512; // higher res = more detail
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = sz;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = 'rgb(128,128,255)';
+  ctx.fillRect(0,0,sz,sz);
+
+  const img = ctx.getImageData(0,0,sz,sz);
+  const d = img.data;
+
+  // Smooth noise via value noise interpolation
+  function fade(t){ return t*t*t*(t*(t*6-15)+10); }
+  function lerp(a,b,t){ return a+t*(b-a); }
+  // Pseudo-random from seed + coords
+  function rand(ix,iy){ 
+    const n = ix*127.1 + iy*311.7 + seed*419.2;
+    return (Math.sin(n)*43758.5453)%1;
+  }
+  function valueNoise(x,y,freq){
+    const fx=x*freq, fy=y*freq;
+    const ix=Math.floor(fx), iy=Math.floor(fy);
+    const ux=fade(fx-ix), uy=fade(fy-iy);
+    const a=rand(ix,iy), b=rand(ix+1,iy);
+    const c=rand(ix,iy+1), dd=rand(ix+1,iy+1);
+    return lerp(lerp(a,b,ux), lerp(c,dd,ux), uy);
+  }
+  // fbm — layered octaves for organic look
+  function fbm(x,y, octaves, baseFreq){
+    let v=0, amp=0.5, freq=baseFreq, max=0;
+    for(let i=0;i<octaves;i++){
+      v   += valueNoise(x,y,freq)*amp;
+      max += amp;
+      amp *= 0.52; freq *= 2.1;
+    }
+    return v/max;
+  }
+
+  const H = new Float32Array(sz*sz);
+  for(let y=0;y<sz;y++){
+    for(let x=0;x<sz;x++){
+      const nx=x/sz, ny=y/sz;
+      // Main fabric folds — low freq, dominant
+      let h = fbm(nx,ny, 4, 1.8) * 0.60;
+      // Gravity creases — stronger vertically (stretch y)
+      h += fbm(nx, ny*2.5, 3, 2.5) * 0.25;
+      // Fine weave texture
+      h += fbm(nx,ny, 2, 8.0) * 0.10;
+      // Micro surface
+      h += fbm(nx,ny, 1, 18.0) * 0.05;
+      H[y*sz+x] = h;
+    }
+  }
+
+  // Derive normal map from height gradient
+  const strength = intensity * 6.0;
+  for(let y=1;y<sz-1;y++){
+    for(let x=1;x<sz-1;x++){
+      const dX = (H[y*sz+(x+1)] - H[y*sz+(x-1)]) * strength;
+      const dY = (H[(y+1)*sz+x] - H[(y-1)*sz+x]) * strength;
+      const nz = 1.0;
+      const len = Math.sqrt(dX*dX+dY*dY+nz*nz);
+      const i=(y*sz+x)*4;
+      d[i]   = Math.round((-dX/len*0.5+0.5)*255);
+      d[i+1] = Math.round((-dY/len*0.5+0.5)*255);
+      d[i+2] = Math.round((nz/len*0.5+0.5)*255);
+      d[i+3] = 255;
+    }
+  }
+  ctx.putImageData(img,0,0);
+  const tex = new THREE.CanvasTexture(cv);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}
 
 // ═══════════════════════════════════════════════
 // SKIN TONES
@@ -311,7 +395,8 @@ const fill= new THREE.DirectionalLight(0x8899ff,0.4); fill.position.set(-3,2,-2)
 const rim = new THREE.DirectionalLight(0xffeedd,0.3); rim.position.set(0,4,-5); scene.add(rim);
 
 const floorMesh = new THREE.Mesh(new THREE.CircleGeometry(2,64), new THREE.MeshStandardMaterial({color:0x111114,roughness:0.9}));
-floorMesh.rotation.x=-Math.PI/2; floorMesh.position.y=-1.6; floorMesh.receiveShadow=true; scene.add(floorMesh);
+floorMesh.rotation.x=-Math.PI/2; floorMesh.position.y=-1.6; floorMesh.receiveShadow=true;
+// Floor added to root so it rotates with the character — feels grounded
 
 const root     = new THREE.Group();
 const clothGrp = new THREE.Group();
@@ -326,15 +411,24 @@ const DARK_MAT = new THREE.MeshStandardMaterial({ color:new THREE.Color(skinColo
 // ═══════════════════════════════════════════════
 function latheTorso(rTop, rMid, rBot, h, segs=40) {
   const pts=[];
-  for(let i=0;i<=32;i++){
-    const t=i/32;
-    // Smooth cubic interpolation
-    const t2=t*t, t3=t2*t;
+  // Add a rounded chest top: start narrow at neck base, swell to full chest width
+  // This creates the natural pectoral/clavicle curve instead of a hard flat top
+  const neckR = rTop * 0.62; // narrower at very top (collarbone width)
+  const steps = 40;
+  for(let i=0;i<=steps;i++){
+    const t=i/steps;
     let r;
-    if(t<0.5){
-      const u=t*2;
+    if(t < 0.12){
+      // Chest top curve: neck-width → full chest width with a smooth arc
+      const u = t/0.12;
+      const ease = u*u*(3-2*u); // smoothstep
+      r = neckR + (rTop-neckR)*ease;
+    } else if(t < 0.5){
+      // Upper torso: chest → waist
+      const u = (t-0.12)/0.38 ;
       r=rTop*(1-3*u*u+2*u*u*u)+rMid*(3*u*u-2*u*u*u);
-    }else{
+    } else {
+      // Lower torso: waist → hip
       const u=(t-0.5)*2;
       r=rMid*(1-3*u*u+2*u*u*u)+rBot*(3*u*u-2*u*u*u);
     }
@@ -351,6 +445,7 @@ let parts={};
 function buildMannequin() {
   while(root.children.length) root.remove(root.children[0]);
   root.add(clothGrp);
+  root.add(floorMesh); // floor orbits with character
   parts={};
 
   const hs  = M.height_cm/175;
@@ -423,8 +518,33 @@ function buildMannequin() {
     const ly=ey-lLen/2;
     add(new THREE.CylinderGeometry(0.030,0.024,lLen,14), DARK_MAT, lx,ly,0);
 
-    // Hand
-    add(new THREE.SphereGeometry(0.026,12,12), DARK_MAT, lx,ey-lLen,0);
+    // HAND — palm + thumb nub + 4 finger stumps
+    const handY = ey - lLen;
+    const palmW = 0.032, palmH = 0.038, palmD = 0.018;
+    // Palm (slightly flattened box)
+    const palm = new THREE.Mesh(
+      new THREE.BoxGeometry(palmW, palmH, palmD),
+      DARK_MAT
+    );
+    palm.position.set(lx, handY - palmH/2, 0);
+    palm.castShadow = true;
+    root.add(palm);
+    // Wrist join sphere
+    add(new THREE.SphereGeometry(0.024,10,10), DARK_MAT, lx, handY, 0);
+    // 4 fingers — small rounded cylinders
+    const fW = 0.009, fH = 0.028;
+    const fingerOffsets = [-0.011,-0.004,0.004,0.011];
+    fingerOffsets.forEach(fx=>{
+      add(new THREE.CylinderGeometry(fW*0.9,fW,fH,8), DARK_MAT,
+          lx+fx*s, handY-palmH-fH/2+0.004, 0);
+      // fingertip round
+      add(new THREE.SphereGeometry(fW*0.9,8,8), DARK_MAT,
+          lx+fx*s, handY-palmH-fH+0.006, 0);
+    });
+    // Thumb — angled outward
+    add(new THREE.CylinderGeometry(0.009,0.010,0.022,8), DARK_MAT,
+        lx + s*0.020, handY - palmH*0.3, 0,
+        0, 0, s*0.55);
   });
 
   // HIP CONNECTOR
@@ -460,107 +580,196 @@ function renderClothing() {
   }
 
   if(wearing.upper){
-    const item  = wearing.upper;
-    const fs    = FIT_SCALE[item.fitStyle||'regular'];
-    const pad   = fs * 0.018; // how much larger than body
+    const item = wearing.upper;
+    const ease    = FIT_EASE_CM[item.fitStyle||'regular'];
 
-    const mat = makeClothMat(item);
+    // ── Derive clothing radii from REAL garment size + ease ──────────────
+    // garmentSize is the stated chest circumference in cm (e.g. 100cm = M shirt)
+    // We add style ease on top, then convert to scene-unit radius.
+    // If no garmentSize provided, fall back to body measurement + ease.
+    const garmentChest = item.garmentSize || M.chest_cm;
+    const garmentWaist = item.garmentSize ? item.garmentSize * (M.waist_cm/M.chest_cm) : M.waist_cm;
+    const garmentHip   = item.garmentSize ? item.garmentSize * (M.hips_cm /M.chest_cm) : M.hips_cm;
 
-    // SHIRT BODY — covers chest down past waist, droops over hip
-    const shirtTop = chestR*fs + pad;
-    const shirtMid = waistR*fs + pad*0.8;
-    const shirtBot = hipR*fs   + pad*1.2; // droops over hip slightly
-    const shirtH   = torH*0.88; // longer — covers waist
+    // Real-world circumferences with ease added
+    const chestCirc = garmentChest + ease;
+    const waistCirc = garmentWaist + ease * 0.8;
+    const hipCirc   = garmentHip   + ease * 1.1;
 
-    ca(latheTorso(shirtTop, shirtMid, shirtBot, shirtH), mat, 0, torsoY+torH*0.06, 0);
-    // Cap top and bottom of shirt so it is fully solid
-    ca(new THREE.CircleGeometry(shirtTop*0.95, 32), mat, 0, torsoY+torH*0.06+shirtH/2, 0, -Math.PI/2,0,0);
-    ca(new THREE.CircleGeometry(shirtBot*0.95, 32), mat, 0, torsoY+torH*0.06-shirtH/2, 0, Math.PI/2,0,0);
+    // Convert to scene radii — but never go smaller than the body itself
+    const shirtTop = Math.max(cmToR(chestCirc), chestR + 0.008);
+    const shirtMid = Math.max(cmToR(waistCirc), waistR + 0.006);
+    const shirtBot = Math.max(cmToR(hipCirc),   hipR   + 0.010);
 
-    // SLEEVES — follow arm angle, cover arms properly
-    const armLen = 0.56*(M.arm_length_cm/65);
-    const ang    = Math.PI/7;
+    // Shirt height driven by torso length measurement
+    const shirtH = torH * 0.90;
+    const shirtY = torsoY + torH * 0.05;
+
+    // More ease = looser fabric = more pronounced folds
+    const wrinkleIntensityU = {slim:0.18, regular:0.32, relaxed:0.50, baggy:0.80, flared:0.55}[item.fitStyle||'regular'];
+    const shirtWrinkle = makeWrinkleNormalMap((item.garmentSize||95)*1.3, wrinkleIntensityU);
+    shirtWrinkle.repeat.set(2, 2.5);
+    const roughnessU = {slim:0.70, regular:0.80, relaxed:0.88, baggy:0.94, flared:0.88}[item.fitStyle||'regular'];
+    const mat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(item.color||'#888888'),
+      roughness: roughnessU, metalness: 0.0,
+      normalMap: shirtWrinkle,
+      normalScale: new THREE.Vector2(wrinkleIntensityU*1.4, wrinkleIntensityU*1.4),
+      side: THREE.DoubleSide,
+      depthWrite: true,
+    });
+
+    // SHIRT BODY — same three-phase chest curve as the body torso
+    // Top narrows to collar width, sweeps out to chest, then waist→hip
+    const shirtCollarR = shirtTop * 0.62; // narrower at top, matches body curve
+    const sPts = [];
+    sPts.push(new THREE.Vector2(0, shirtH/2));
+    sPts.push(new THREE.Vector2(shirtCollarR, shirtH/2)); // start narrow at collar
+    const steps = 40;
+    for(let i=0; i<=steps; i++){
+      const t = i/steps;
+      let r;
+      if(t < 0.12){
+        // Arc from collar width out to full chest — smoothstep
+        const u = t/0.12;
+        const ease = u*u*(3-2*u);
+        r = shirtCollarR + (shirtTop - shirtCollarR)*ease;
+      } else if(t < 0.5){
+        // Chest → waist
+        const u = (t-0.12)/0.38;
+        r = shirtTop*(1-3*u*u+2*u*u*u) + shirtMid*(3*u*u-2*u*u*u);
+      } else {
+        // Waist → hip
+        const u = (t-0.5)*2;
+        r = shirtMid*(1-u) + shirtBot*u;
+      }
+      sPts.push(new THREE.Vector2(Math.max(r,0.001), shirtH/2 - t*shirtH));
+    }
+    sPts.push(new THREE.Vector2(shirtBot, -shirtH/2));
+    sPts.push(new THREE.Vector2(0,        -shirtH/2));
+    ca(new THREE.LatheGeometry(sPts, 40), mat, 0, shirtY, 0);
+
+    // SLEEVES — length driven by arm_length_cm measurement
+    const armLen    = 0.56*(M.arm_length_cm/65);
+    const armAng    = Math.PI/7;
+    const uLen      = armLen*0.52;
+    const lLen      = armLen*0.48;
+    // Sleeve radius: proportional to chest ease — baggy shirt = puffy sleeves
+    const sR        = Math.max(cmToR(chestCirc) * 0.30, 0.040);
+    const shoulderX = sW;
+    const shoulderY = torsoY + torH/2 - 0.035;
+    const elbowX    = sW + uLen*Math.sin(armAng);
+    const elbowY    = shoulderY - uLen*Math.cos(armAng);
+
+    // SHOULDER YOKE
     [-1,1].forEach(s=>{
-      const uLen = armLen*0.52;
-      const lLen = armLen*0.48;
-      const sleeveR = 0.040*fs;
+      const yokeR = sR * 1.55;
+      ca(new THREE.SphereGeometry(yokeR, 24, 24), mat,
+         s * shoulderX, shoulderY + 0.01, 0);
+    });
 
-      // Upper sleeve
-      const ux = s*sW + s*uLen*Math.sin(ang)*0.5;
-      const uy = torsoY+torH/2-0.04 - uLen*0.5;
-      ca(new THREE.CylinderGeometry(sleeveR+0.004, sleeveR, uLen+0.01, 16), mat, ux,uy,0, 0,0,s*ang);
+    // SLEEVES
+    [-1,1].forEach(s=>{
+      const ux = s * (shoulderX + uLen*Math.sin(armAng)*0.5);
+      const uy = shoulderY - uLen*0.5;
+      ca(new THREE.CylinderGeometry(sR+0.002, sR, uLen+0.01, 18, 1, false),
+         mat, ux, uy, 0,  0,0, s*armAng);
 
-      // Elbow join
-      const ex = s*sW + s*uLen*Math.sin(ang);
-      const ey = torsoY+torH/2-0.04 - uLen*Math.cos(ang);
-      ca(new THREE.SphereGeometry(sleeveR*0.95,14,14), mat, ex,ey,0);
+      ca(new THREE.SphereGeometry(sR+0.001, 16, 16), mat, s*elbowX, elbowY, 0);
 
-      // Lower sleeve
-      const lx = ex+s*0.01;
-      const ly = ey-lLen/2;
-      ca(new THREE.CylinderGeometry(sleeveR*0.95, sleeveR*0.78, lLen+0.01, 16), mat, lx,ly,0);
+      const lx = s*elbowX + s*0.01;
+      const ly = elbowY - lLen/2;
+      ca(new THREE.CylinderGeometry(sR, sR*0.82, lLen, 18, 1, false),
+         mat, lx, ly, 0);
+      ca(new THREE.CircleGeometry(sR*0.82, 18), mat,
+         lx, elbowY-lLen, 0,  Math.PI/2,0,0);
     });
 
     // COLLAR
-    ca(new THREE.TorusGeometry(0.055,0.011,10,32), mat, 0,torsoY+torH/2+0.01,0, Math.PI/2,0,0);
+    ca(new THREE.TorusGeometry(0.056, 0.012, 10, 32), mat,
+       0, torsoY+torH/2+0.012, 0,  Math.PI/2,0,0);
 
-    // FIT indicator
     updateFitIndicator('upper', item);
   }
 
   if(wearing.lower){
-    const item = wearing.lower;
-    const fs   = FIT_SCALE[item.fitStyle||'regular'];
-    const hpS  = M.hips_cm/98;
-    const lLen = legH*0.96;
-    // DoubleSide so interior faces are always rendered — combined with
-    // clothing being LARGER than the leg, the skin can never show through
-    const mat  = new THREE.MeshStandardMaterial({
+    const item  = wearing.lower;
+    const ease  = FIT_EASE_CM[item.fitStyle||'regular'];
+    const hpS   = M.hips_cm/98;
+    const lLen  = legH*0.96;
+
+    // Garment waist circumference + ease → scene radius
+    const garmentWaist = item.garmentSize || M.waist_cm;
+    // Derive hip and thigh from waist proportion of this person
+    const garmentHip   = item.garmentSize ? item.garmentSize * (M.hips_cm/M.waist_cm) : M.hips_cm;
+    const garmentThigh = garmentHip * 0.60; // thigh ~60% of hip circ
+
+    const wbR   = Math.max(cmToR(garmentHip   + ease * 1.1), hipR   + 0.010);
+    const topR  = Math.max(cmToR(garmentThigh + ease * 0.9), 0.058);
+    const kneR  = topR * 0.88;
+    const botR  = (item.fitStyle==='baggy'||item.fitStyle==='relaxed')
+                  ? topR * 0.82
+                  : topR * 0.68;
+
+    // Leg length driven by leg_length_cm measurement
+    const uLH    = lLen*0.52;
+    const lLH    = lLen*0.48;
+    const totalH = uLH + lLH;
+
+    const wrinkleIntensityL = {slim:0.22, regular:0.40, relaxed:0.62, baggy:0.95, flared:0.75}[item.fitStyle||'regular'];
+    const wrinkleMap = makeWrinkleNormalMap(item.garmentSize||82, wrinkleIntensityL);
+    wrinkleMap.repeat.set(2, 3.5);
+    const roughnessL = {slim:0.72, regular:0.82, relaxed:0.90, baggy:0.96, flared:0.92}[item.fitStyle||'regular'];
+    const mat = new THREE.MeshStandardMaterial({
       color: new THREE.Color(item.color||'#888888'),
-      roughness:0.82, metalness:0.0,
+      roughness: roughnessL,
+      metalness: 0.0,
+      normalMap: wrinkleMap,
+      normalScale: new THREE.Vector2(wrinkleIntensityL*1.5, wrinkleIntensityL*1.5),
       side: THREE.DoubleSide,
       depthWrite: true,
     });
 
     // WAISTBAND
-    const wbR = hipR*fs+0.018;
     ca(new THREE.CylinderGeometry(wbR, wbR*0.97, 0.08, 32, 1, false), mat, 0,hipY+0.02,0);
 
-    // TROUSER LEGS — single lathe per leg for seamless geometry, no gaps
+    // TROUSER LEGS — single seamless lathe per leg
     [-1,1].forEach(s=>{
-      const lx   = s*0.085*hpS;
-      const topR = 0.068*fs;   // generously wider than the leg (0.055 body)
-      const kneR = 0.060*fs;
-      const botR = (item.fitStyle==='baggy'||item.fitStyle==='relaxed') ? 0.056*fs : 0.044*fs;
-      const uLH  = lLen*0.52;
-      const lLH  = lLen*0.48;
-      const totalH = uLH + lLH;
-
-      // Build a single lathe profile for the entire leg — no joins, no gaps
+      const lx = s*0.085*hpS;
       const pts = [];
-      const steps = 40;
+      const steps = 48;
+      const isFlared = item.fitStyle==='flared';
+      const isBaggy  = item.fitStyle==='baggy' || item.fitStyle==='relaxed';
+      // Drape sag: baggy fabric hangs away from body between knee and hip
+      // We add a subtle outward belly at ~30% down (mid-thigh) for loose fits
+      const sagAmt   = isBaggy ? topR * 0.12 : (item.fitStyle==='relaxed' ? topR*0.05 : 0);
       for(let i=0;i<=steps;i++){
         const t = i/steps;
         const y = totalH/2 - t*totalH;
         let r;
-        if(t < 0.5){
-          // upper half: topR -> kneR
-          const u = t*2;
-          r = topR*(1-u) + kneR*u;
+        if(isFlared){
+          if(t < 0.5){
+            const u=t*2; r=topR*(1-u)+kneR*u;
+          } else {
+            const u=(t-0.5)*2;
+            const flareBot = topR * 1.55;
+            r=kneR*(1-u*u) + flareBot*u*u;
+          }
         } else {
-          // lower half: kneR -> botR
-          const u = (t-0.5)*2;
-          r = kneR*(1-u) + botR*u;
+          if(t < 0.5){ const u=t*2; r=topR*(1-u)+kneR*u; }
+          else        { const u=(t-0.5)*2; r=kneR*(1-u)+botR*u; }
         }
-        pts.push(new THREE.Vector2(r, y));
+        // Fabric sag belly — peaks at t=0.28 (mid upper leg), smooth bell curve
+        const sagT = t < 0.5 ? t*2 : 0;
+        const sag  = sagAmt * Math.sin(sagT * Math.PI);
+        // Subtle fold ripple on baggy — makes silhouette feel less machined
+        const ripple = isBaggy
+          ? Math.sin(t * Math.PI * 5 + (item.garmentSize||82)*0.1) * topR * 0.018
+          : 0;
+        pts.push(new THREE.Vector2(Math.max(r + sag + ripple, 0.01), y));
       }
-      // Close the bottom
       pts.push(new THREE.Vector2(0, -totalH/2));
-
-      const legGeo = new THREE.LatheGeometry(pts, 24);
-      ca(legGeo, mat, lx, hipY - totalH/2, 0);
-
-      // Top disc cap — seals the very top of the trouser leg
+      ca(new THREE.LatheGeometry(pts, 28), mat, lx, hipY-totalH/2, 0);
       ca(new THREE.CircleGeometry(topR, 24), mat, lx, hipY, 0, -Math.PI/2,0,0);
     });
 
@@ -629,6 +838,7 @@ const SAMPLES=[
   {name:'Khaki Chinos', type:'lower', color:'#b5a07a', fitStyle:'slim',    garmentSize:80},
   {name:'Navy Blazer',  type:'upper', color:'#1b2a4a', fitStyle:'slim',    garmentSize:96},
   {name:'Baggy Jeans',  type:'lower', color:'#3a4a6a', fitStyle:'baggy',   garmentSize:104},
+  {name:'Flared Cords', type:'lower', color:'#6b4e3d', fitStyle:'flared',  garmentSize:84},
 ];
 
 function buildPanel(){
@@ -676,7 +886,9 @@ function addItem(e){
 
     // Pre-fill modal
     document.getElementById('fit-name').value=name;
-    document.getElementById('fit-type').value=isLower?'lower':'upper';
+    const detectedType = isLower?'lower':'upper';
+    document.getElementById('fit-type').value=detectedType;
+    onTypeChange(detectedType); // enforce flared restriction immediately
     document.getElementById('garment-size').value=isLower?M.waist_cm:M.chest_cm;
     document.getElementById('garment-size-val').textContent=(isLower?M.waist_cm:M.chest_cm)+'cm';
 
@@ -687,6 +899,20 @@ function addItem(e){
   e.target.value='';
 }
 
+function onTypeChange(type){
+  const flaredOpt = document.querySelector('#fit-style option[value="flared"]');
+  if(!flaredOpt) return;
+  if(type === 'upper'){
+    flaredOpt.disabled = true;
+    flaredOpt.textContent = 'Flared / Wide Leg (lower only)';
+    // If flared was selected, reset to regular
+    const sel = document.getElementById('fit-style');
+    if(sel.value === 'flared') sel.value = 'regular';
+  } else {
+    flaredOpt.disabled = false;
+    flaredOpt.textContent = 'Flared / Wide Leg';
+  }
+}
 function closeFitModal(){ document.getElementById('fit-modal').classList.remove('on'); pendingItem=null; }
 
 function confirmFitModal(){
@@ -858,10 +1084,10 @@ function resize(){
 
 function animate(){
   requestAnimationFrame(animate);
-  root.rotation.y=rotY;
-  root.rotation.x=rotX;
+  // Camera orbits around the character — root/character stays fixed in world space
+  root.rotation.set(0,0,0);
   camera.position.x=Math.sin(rotY)*zoom;
-  camera.position.y=0.3+rotX*0.5;
+  camera.position.y=0.3+rotX*zoom*0.4;
   camera.position.z=Math.cos(rotY)*zoom;
   camera.lookAt(0,0.1,0);
   renderer.render(scene,camera);
