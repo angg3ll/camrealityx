@@ -1,13 +1,15 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useShop } from '../context/ShopContext'
 import FilterBar from '../components/results/FilterBar'
 import ProductGrid from '../components/results/ProductGrid'
 import EmptyState from '../components/results/EmptyState'
+import Showroom3D from '../components/Showroom3D'
 
 export default function ResultsPage() {
   const { state } = useShop()
   const navigate = useNavigate()
+  const [showroomOpen, setShowroomOpen] = useState(false)
   const { products, filters } = state
 
   useEffect(() => {
@@ -55,15 +57,23 @@ export default function ResultsPage() {
             Handpicked from Etsy based on your preferences
           </p>
         </div>
-        <button
-          onClick={() => navigate('/')}
-          className="flex items-center gap-2 px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 text-sm font-medium rounded-xl transition-colors"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          New search
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowroomOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-stone-900 hover:bg-stone-800 text-stone-100 text-sm font-medium rounded-xl transition-colors border border-stone-700"
+          >
+            ✦ Enter Your Showroom
+          </button>
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2 px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 text-sm font-medium rounded-xl transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            New search
+          </button>
+        </div>
       </div>
 
       <FilterBar tags={allTags} totalCount={filtered.length} />
@@ -72,6 +82,10 @@ export default function ResultsPage() {
         <EmptyState message="No products match the current filters. Try removing some." />
       ) : (
         <ProductGrid products={filtered} />
+      )}
+
+      {showroomOpen && (
+        <Showroom3D products={filtered} onClose={() => setShowroomOpen(false)} />
       )}
     </main>
   )
