@@ -112,7 +112,7 @@ const SMALL_SHOP_PRODUCTS = [
 
 // ── CREW MEMBERS ──────────────────────────────────────────────────────────────
 const CREW_MEMBERS = [
-  { id:'maya', name:'Maya',   avatar:'M', color:'#00f0e0', compat:78, type:'Warm Minimalist', tags:['minimal','coastal','organic'], picks:['tp2','tp3'] },
+  { id:'maya', name:'Maya',   avatar:'M', color:'#00f0e0', compat:78, type:'Coastal Minimalist', tags:['minimal','coastal','organic'], picks:['tp2','tp3'] },
   { id:'soleil',  name:'Soleil',    avatar:'S', color:'#c8a8f0', compat:71, type:'Soft Botanical',  tags:['natural','soft','earthy'],     picks:['tp1','tp5'] },
   { id:'daniel',  name:'Daniel',    avatar:'D', color:'#ff00cc', compat:64, type:'Urban Refined',   tags:['minimal','sharp','edgy'],   picks:['tp4','tp6'] },
 ];
@@ -1198,6 +1198,7 @@ export default function SocialArcade() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [addedToBag, setAddedToBag]   = useState(false);
   const [wishlist, setWishlist]       = useState([]);
+  const [bag, setBag]                 = useState([]);
   const [productTab, setProductTab]   = useState("all");
   const [activeCrew, setActiveCrew]   = useState("maya");
   const [requestedCrew, setRequestedCrew] = useState([]);
@@ -1273,6 +1274,7 @@ export default function SocialArcade() {
 
   const handleAddToBag = () => {
     setAddedToBag(true);
+    setBag(b => b.some(x => x.id === selectedProduct.id) ? b : [...b, selectedProduct]);
   };
 
   const handleShareWithCrew = () => {
@@ -1700,34 +1702,12 @@ export default function SocialArcade() {
                 {productTab === "all" && (
                   <button className="sr-enter-btn" style={{padding:'7px 16px',fontSize:'8px'}}
                     onClick={() => setShowroom({
-                      products: UNSPLASH_PRODUCTS,
+                      products: sortedTasteProducts,
                       tags: activeTags,
                       palette: aiPalette,
                       title: crewType,
                       spaceType: 'Your Space',
                       color: '#e8b84b',
-                    })}>⬡ Showroom</button>
-                )}
-                {productTab === "crew" && (
-                  <button className="sr-enter-btn sr-enter-btn-teal" style={{padding:'7px 16px',fontSize:'8px'}}
-                    onClick={() => setShowroom({
-                      products: UNSPLASH_PRODUCTS.filter(p=>p.match),
-                      tags: ['minimal','organic','warm'],
-                      palette: [],
-                      title: 'Crew Overlap',
-                      spaceType: 'Friends Space',
-                      color: '#4ab8a0',
-                    })}>⬡ Showroom</button>
-                )}
-                {productTab === "small" && (
-                  <button className="sr-enter-btn" style={{padding:'7px 16px',fontSize:'8px'}}
-                    onClick={() => setShowroom({
-                      products: SMALL_SHOP_PRODUCTS,
-                      tags: activeTags,
-                      palette: aiPalette,
-                      title: 'Small Shops',
-                      spaceType: 'Independent Makers',
-                      color: '#c8a87a',
                     })}>⬡ Showroom</button>
                 )}
               </div>
@@ -1781,7 +1761,7 @@ export default function SocialArcade() {
               <button className={`stab ${sideTab==="overlap"?"on":""}`}   onClick={()=>setSideTab("overlap")}>Taste</button>
               <button className={`stab ${sideTab==="chat"?"on":""}`}     onClick={()=>setSideTab("chat")}>Chat</button>
               <button className={`stab ${sideTab==="crew"?"on":""}`}     onClick={()=>setSideTab("crew")}>Crew</button>
-              <button className={`stab teal ${sideTab==="wishlist"?"on":""}`} onClick={()=>setSideTab("wishlist")}>♡ Saved</button>
+              <button className={`stab teal ${sideTab==="wishlist"?"on":""}`} onClick={()=>setSideTab("wishlist")}>🛍 Saved</button>
             </div>
             <div className="sidebar-body">
 
@@ -1927,10 +1907,30 @@ export default function SocialArcade() {
 
               {sideTab === "wishlist" && (
                 <div className="s-section">
-                  <div className="s-eye">Wishlist Items</div>
+                  <div className="s-eye">🛍 Bag</div>
+                  {bag.length === 0 ? (
+                    <div className="wishlist-empty">
+                      <div style={{fontSize:24,marginBottom:8}}>🛍</div>
+                      <div>Add items to your bag to see them here</div>
+                    </div>
+                  ) : (
+                    <div className="wishlist-list">
+                      {bag.map(p => (
+                        <div key={p.id} className="wishlist-item" onClick={() => openProduct(p)}>
+                          <img className="wishlist-img" src={p.img} alt={p.name} onError={e=>e.target.style.display="none"}/>
+                          <div className="wishlist-info">
+                            <div className="wishlist-name">{p.name}</div>
+                            <div className="wishlist-price" style={{color:'var(--gold)'}}>{p.price}</div>
+                          </div>
+                          <button className="wishlist-remove" onClick={e=>{ e.stopPropagation(); setBag(b=>b.filter(x=>x.id!==p.id)); }}>✕</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="s-eye" style={{marginTop:20}}>♡ Saved</div>
                   {wishlist.length === 0 ? (
                     <div className="wishlist-empty">
-                      <div style={{fontSize:28,marginBottom:8}}>♡</div>
+                      <div style={{fontSize:24,marginBottom:8}}>♡</div>
                       <div>Save items from any category to see them here</div>
                     </div>
                   ) : (
