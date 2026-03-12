@@ -1678,7 +1678,6 @@ export default function SocialArcade() {
           <div className="session-bar">
             <div className="live-pip"/>
             <span>Live Session</span>
-            <div className="crew-av" style={{borderColor:"#ff2d78",background:"rgba(255,45,120,0.08)",color:"#ff2d78"}}>Y</div>
             <div className="crew-av" style={{borderColor:"#00f0e0",background:"rgba(0,240,224,0.08)",color:"#00f0e0"}}>M</div>
             {!showroom && <span style={{color:"#00f0e0"}}>Maya is here</span>}
           </div>

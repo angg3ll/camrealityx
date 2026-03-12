@@ -1,10 +1,14 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
+import FittingRoom from "./FittingRoom";
 
-export default function Showroom3D({ products, tags, palette, title, spaceType, color, onClose, onSelectProduct }) {
+export default function Showroom3D({ products, tags, palette, title = "Your Showroom", spaceType = "My Space", color, onClose, onSelectProduct }) {
   const mountRef = useRef(null);
   const ctrlRef  = useRef({ phi: 0, theta: 0.0 });
   const camPosRef = useRef({ x: 0, z: 0, tx: 0, tz: 0 }); // current & target camera XZ
+  const [fittingRoomOpen, setFittingRoomOpen] = useState(false);
+  const openFittingRoomRef = useRef(null);
+  openFittingRoomRef.current = () => setFittingRoomOpen(true);
 
   const accent = palette?.[0] || color || "#c8a87a";
   const wallL  = products.filter((_, i) => i % 2 === 0).slice(0, 3);
@@ -597,20 +601,20 @@ export default function Showroom3D({ products, tags, palette, title, spaceType, 
       productPlanes.push(candleMeshes[1]);
     }
     // Link left linen stack to products[1]
-    if (products[2] && linenTopMesh) {
-      linenTopMesh.userData.product = products[2];
+    if (products[4] && linenTopMesh) {
+      linenTopMesh.userData.product = products[4];
       linenTopMesh.userData.mesh    = linenTopMesh;
       productPlanes.push(linenTopMesh);
     }
     // Link right linen stack to wool throw
-    if (products[3] && linenTopMeshRight) {
-      linenTopMeshRight.userData.product = products[3];
+    if (products[1] && linenTopMeshRight) {
+      linenTopMeshRight.userData.product = products[1];
       linenTopMeshRight.userData.mesh    = linenTopMeshRight;
       productPlanes.push(linenTopMeshRight);
     }
     // Link middle spray bottle
-    if (products[4] && sprayBottleMidMesh) {
-      sprayBottleMidMesh.userData.product = products[4];
+    if (products[2] && sprayBottleMidMesh) {
+      sprayBottleMidMesh.userData.product = products[2];
       sprayBottleMidMesh.userData.mesh    = sprayBottleMidMesh;
       productPlanes.push(sprayBottleMidMesh);
     }
@@ -667,8 +671,9 @@ export default function Showroom3D({ products, tags, palette, title, spaceType, 
       const hits = raycaster.intersectObjects(productPlanes);
       const prev = hoveredPlane;
       hoveredPlane = hits.length ? hits[0].object : null;
+      const frHover = raycaster.intersectObjects([frTextMesh]).length > 0;
 
-      el.style.cursor = hoveredPlane ? "pointer" : "grab";
+      el.style.cursor = (hoveredPlane || frHover) ? "pointer" : "grab";
 
       if (prev !== hoveredPlane) {
         if (prev) {
@@ -693,8 +698,9 @@ export default function Showroom3D({ products, tags, palette, title, spaceType, 
       mouse2d.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
       mouse2d.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
       raycaster.setFromCamera(mouse2d, camera);
+      if (raycaster.intersectObjects([frTextMesh]).length) { openFittingRoomRef.current(); return; }
       const hits = raycaster.intersectObjects(productPlanes);
-      if (hits.length && hits[0].object.userData.product) onSelectProduct(hits[0].object.userData.product);
+      if (hits.length && hits[0].object.userData.product) onSelectProduct?.(hits[0].object.userData.product);
     };
 
     const onKey = e => {
@@ -818,8 +824,8 @@ export default function Showroom3D({ products, tags, palette, title, spaceType, 
       {(() => {
         // RW=1800 RD=2000 — waypoints in world units
         const WAYPOINTS = [
-          { label: "Entrance",   x:    0, z:  920, phi: 0 },
           { label: "Left wall",  x: -680, z:  200, phi:  0.55 },
+          { label: "Entrance",   x:    0, z:  920, phi: 0 },
           { label: "Right wall", x:  680, z:  200, phi: -0.55 },
         ];
         return (
@@ -848,8 +854,12 @@ export default function Showroom3D({ products, tags, palette, title, spaceType, 
           <div style={{ color: accent, fontSize: 9, letterSpacing: "0.32em", textTransform: "uppercase", marginBottom: 5, fontFamily: hudFont }}>✦ {spaceType}</div>
           <div style={{ color: "#2a2218", fontSize: 21, fontFamily: serifFont, fontWeight: 300, letterSpacing: "0.02em" }}>{title}</div>
         </div>
-        <button onClick={onClose}
-          style={{ pointerEvents: "auto", background: "rgba(255,251,245,0.92)", border: "1px solid rgba(0,0,0,0.13)", color: "#5a5040", fontSize: 9, padding: "9px 18px", cursor: "pointer", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: hudFont, borderRadius: 2, backdropFilter: "blur(6px)" }}>✕ &nbsp; Exit</button>
+        <div style={{ display: "flex", gap: 8, pointerEvents: "auto" }}>
+          <button onClick={() => setFittingRoomOpen(true)}
+            style={{ background: "rgba(255,251,245,0.92)", border: "1px solid rgba(0,0,0,0.13)", color: "#5a5040", fontSize: 9, padding: "9px 18px", cursor: "pointer", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: hudFont, borderRadius: 2, backdropFilter: "blur(6px)" }}>✦ &nbsp; Fitting Room</button>
+          <button onClick={onClose}
+            style={{ background: "rgba(255,251,245,0.92)", border: "1px solid rgba(0,0,0,0.13)", color: "#5a5040", fontSize: 9, padding: "9px 18px", cursor: "pointer", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: hudFont, borderRadius: 2, backdropFilter: "blur(6px)" }}>✕ &nbsp; Exit</button>
+        </div>
       </div>
 
       {/* HUD bottom */}
@@ -857,6 +867,9 @@ export default function Showroom3D({ products, tags, palette, title, spaceType, 
         <span style={{ color: "rgba(72, 47, 6, 0.5)", fontSize: 12, fontFamily: hudFont, letterSpacing: "0.12em" }}>Drag to look · ← → ↑ ↓ keys · ✦FIND PRODUCTS TO VIEW✦</span>
         <span style={{ color: accent, fontSize: 9, fontFamily: hudFont, letterSpacing: "0.1em" }}>{products.length} pieces</span>
       </div>
+      {fittingRoomOpen && (
+        <FittingRoom products={products} onClose={() => setFittingRoomOpen(false)} />
+      )}
     </div>
   );
 }
