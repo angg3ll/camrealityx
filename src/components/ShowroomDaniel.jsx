@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react"; // useState kept for labelData
 import * as THREE from "three";
 
 // ── DANIEL'S SHOWROOM — Urban Refined ─────────────────────────────────────────
@@ -14,7 +14,6 @@ export default function ShowroomDaniel({
   onSelectProduct,
 }) {
   const mountRef = useRef(null);
-  const [hoveredProduct, setHoveredProduct] = useState(null);
   const [labelData, setLabelData] = useState([]);
 
   useEffect(() => {
@@ -80,6 +79,18 @@ export default function ShowroomDaniel({
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
     scene.add(floor);
+
+    // Butter yellow rug — under pedestals
+    const rugMat = new THREE.MeshStandardMaterial({
+      color: 0xf5d050,
+      roughness: 0.95,
+      metalness: 0.0,
+    });
+    const rug = new THREE.Mesh(new THREE.PlaneGeometry(1400, 900), rugMat);
+    rug.rotation.x = -Math.PI / 2;
+    rug.position.set(0, 2, -200);
+    rug.receiveShadow = true;
+    scene.add(rug);
 
     // Ceiling
     const ceiling = new THREE.Mesh(
@@ -154,14 +165,14 @@ export default function ShowroomDaniel({
 
     // ── LIGHTING ──────────────────────────────────────────────────────────────
     // Lifted ambient — reveals room but keeps drama
-    scene.add(new THREE.AmbientLight(0x8899cc, 0.45));
+    scene.add(new THREE.AmbientLight(0xaabbdd, 2.2));
 
     // Cool overhead fill from ceiling
-    const fillLight = new THREE.HemisphereLight(0xaabbdd, 0x222233, 0.35);
+    const fillLight = new THREE.HemisphereLight(0xccd8ff, 0x444455, 1.4);
     scene.add(fillLight);
 
     // Main dramatic key spot — warm tungsten, much brighter
-    const keySpot = new THREE.SpotLight(0xfff0cc, 6.0, 2400, Math.PI / 9, 0.45, 1.0);
+    const keySpot = new THREE.SpotLight(0xfff0cc, 9.0, 2400, Math.PI / 9, 0.45, 1.0);
     keySpot.position.set(120, 820, 600);
     keySpot.target.position.set(0, 0, 0);
     keySpot.castShadow = true;
@@ -323,17 +334,42 @@ export default function ShowroomDaniel({
       scene.add(strip);
     });
 
-    // ── RAYCASTER FOR HOVER ───────────────────────────────────────────────────
+    // ── ORBIT / ZOOM CONTROLS ─────────────────────────────────────────────────
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2(-9999, -9999);
 
-    const onMouseMove = (e) => {
-      const rect = mount.getBoundingClientRect();
-      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    const ctrl = { phi: 0, theta: 0.085 };
+    const drag = { on: false, x: 0, y: 0, phi0: 0, th0: 0 };
+    let zoomDist = 1900;
+    const ZOOM_MIN = 400, ZOOM_MAX = 3500;
+    let ptDown = { x: 0, y: 0 };
+    let pinchStart = null;
+    const el = renderer.domElement;
+
+    const onPD = e => {
+      drag.on = true;
+      drag.x = e.clientX; drag.y = e.clientY;
+      drag.phi0 = ctrl.phi; drag.th0 = ctrl.theta;
+      ptDown = { x: e.clientX, y: e.clientY };
+      el.style.cursor = "grabbing";
+      el.setPointerCapture(e.pointerId);
     };
 
-    const onClick = (e) => {
+    const onPM = e => {
+      if (drag.on) {
+        ctrl.phi   = drag.phi0 - (e.clientX - drag.x) * 0.003;
+        ctrl.theta = Math.max(-0.1, Math.min(0.45, drag.th0 + (e.clientY - drag.y) * 0.002));
+        return;
+      }
+      const rect = el.getBoundingClientRect();
+      mouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
+      mouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
+    };
+
+    const onPU = () => { drag.on = false; el.style.cursor = "grab"; };
+
+    const onClick = e => {
+      if (Math.hypot(e.clientX - ptDown.x, e.clientY - ptDown.y) > 6) return;
       raycaster.setFromCamera(mouse, camera);
       const hits = raycaster.intersectObjects(productMeshes);
       if (hits.length > 0 && onSelectProduct) {
@@ -341,34 +377,62 @@ export default function ShowroomDaniel({
       }
     };
 
-    mount.addEventListener("mousemove", onMouseMove);
-    mount.addEventListener("click", onClick);
+    const onWheel = e => {
+      e.preventDefault();
+      zoomDist = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, zoomDist + e.deltaY * 1.2));
+    };
+
+    const onTouchStart = e => {
+      if (e.touches.length === 2)
+        pinchStart = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    };
+
+    const onTouchMove = e => {
+      if (e.touches.length === 2 && pinchStart !== null) {
+        const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        zoomDist = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, zoomDist - (d - pinchStart) * 2));
+        pinchStart = d;
+        e.preventDefault();
+      }
+    };
+
+    el.style.cursor = "grab";
+    el.addEventListener("pointerdown",  onPD);
+    el.addEventListener("pointermove",  onPM);
+    el.addEventListener("pointerup",    onPU);
+    el.addEventListener("click",        onClick);
+    el.addEventListener("wheel",        onWheel,       { passive: false });
+    el.addEventListener("touchstart",   onTouchStart,  { passive: false });
+    el.addEventListener("touchmove",    onTouchMove,   { passive: false });
 
     // ── ANIMATION ─────────────────────────────────────────────────────────────
     let raf;
     let t = 0;
+    const TX = 0, TY = 260, TZ = 0;
 
     const animate = () => {
       raf = requestAnimationFrame(animate);
       t += 0.005;
 
-      // Gentle camera sway
-      camera.position.x = Math.sin(t * 0.3) * 120;
-      camera.position.y = 420 + Math.sin(t * 0.2) * 20;
-      camera.lookAt(0, 260, 0);
+      // Orbit camera from spherical coords
+      camera.position.set(
+        TX + zoomDist * Math.sin(ctrl.phi) * Math.cos(ctrl.theta),
+        TY + zoomDist * Math.sin(ctrl.theta),
+        TZ + zoomDist * Math.cos(ctrl.phi) * Math.cos(ctrl.theta),
+      );
+      camera.lookAt(TX, TY, TZ);
 
-      // Rotate product objects slowly
-      productMeshes.forEach((mesh, i) => {
-        mesh.rotation.y += 0.004 + i * 0.0008;
-        // Subtle bob
-        mesh.position.y += Math.sin(t + i * 1.3) * 0.12;
+      // Rotate + bob product objects
+      productMeshes.forEach((mesh, idx) => {
+        mesh.rotation.y += 0.004 + idx * 0.0008;
+        mesh.position.y += Math.sin(t + idx * 1.3) * 0.12;
       });
 
       // Hover detection
       raycaster.setFromCamera(mouse, camera);
       const hits = raycaster.intersectObjects(productMeshes);
 
-      productMeshes.forEach((mesh, i) => {
+      productMeshes.forEach((mesh) => {
         const isHovered = hits.length > 0 && hits[0].object === mesh;
         const mat = mesh.material;
         if (isHovered) {
@@ -382,10 +446,10 @@ export default function ShowroomDaniel({
         }
       });
 
-      // Dynamic label positions — project 3D to 2D
+      // Project 3D label positions to 2D screen
       const w = mount.clientWidth;
       const h = mount.clientHeight;
-      const newLabels = productMeshes.map((mesh, i) => {
+      const newLabels = productMeshes.map((mesh) => {
         const pos = mesh.position.clone().project(camera);
         return {
           x: (pos.x * 0.5 + 0.5) * w,
@@ -411,8 +475,13 @@ export default function ShowroomDaniel({
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", onResize);
-      mount.removeEventListener("mousemove", onMouseMove);
-      mount.removeEventListener("click", onClick);
+      el.removeEventListener("pointerdown",  onPD);
+      el.removeEventListener("pointermove",  onPM);
+      el.removeEventListener("pointerup",    onPU);
+      el.removeEventListener("click",        onClick);
+      el.removeEventListener("wheel",        onWheel);
+      el.removeEventListener("touchstart",   onTouchStart);
+      el.removeEventListener("touchmove",    onTouchMove);
       renderer.dispose();
       if (mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement);
     };
@@ -479,6 +548,7 @@ const styles = {
   overlay: {
     position: "fixed",
     inset: 0,
+    zIndex: 500,
     background: "#2c2c35",
     fontFamily: "'IBM Plex Mono', 'Courier New', monospace",
     overflow: "hidden",

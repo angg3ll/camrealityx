@@ -371,13 +371,15 @@ export default function Showroom3D({ products, tags, palette, title, spaceType, 
 
     // Spray bottles — three in a row, back of table
     const sprayZ = tableZ - 20;
+    let sprayBottleMidMesh = null;
     [60, 110, 160].forEach((sx, i) => {
       const bH = 80 + i * 8;
       const bCol = i === 0 ? 0xd8e0d8 : i === 1 ? 0xe0dcd4 : 0xd4d8dc;
-      // Bottle body
-      add(new THREE.CylinderGeometry(10, 11, bH, 12),
+      // Bottle body — capture middle one for product linking
+      const bodyMesh = add(new THREE.CylinderGeometry(10, 11, bH, 12),
         new THREE.MeshStandardMaterial({ color: bCol, roughness: 0.4, metalness: 0.1 }),
         leftTableX + sx, tableTopY + bH / 2, sprayZ);
+      if (i === 1) sprayBottleMidMesh = bodyMesh;
       // Neck
       add(new THREE.CylinderGeometry(5, 10, 14, 10),
         new THREE.MeshStandardMaterial({ color: bCol, roughness: 0.4 }),
@@ -581,10 +583,7 @@ export default function Showroom3D({ products, tags, palette, title, spaceType, 
     // Product frames on back wall only — centred left of the fitting room section
     // Back wall is at z = -RD/2, frames face forward (no ry rotation needed)
     const backFrameZ = -RD / 2 + FD / 2 + 1;
-    // [-160, 160].forEach((dx, i) => {
-    //   const p = [...wallL, ...wallR][i];
-    //   if (p) addFrame(p, dx, 660, backFrameZ, 0);
-    // });
+    
     [3, 5].forEach((idx, i) => {
     const p = products[idx];
     if (p) addFrame(p, [-160, 160][i], 660, backFrameZ, 0);
@@ -598,16 +597,22 @@ export default function Showroom3D({ products, tags, palette, title, spaceType, 
       productPlanes.push(candleMeshes[1]);
     }
     // Link left linen stack to products[1]
-    if (products[1] && linenTopMesh) {
-      linenTopMesh.userData.product = products[1];
+    if (products[2] && linenTopMesh) {
+      linenTopMesh.userData.product = products[2];
       linenTopMesh.userData.mesh    = linenTopMesh;
       productPlanes.push(linenTopMesh);
     }
     // Link right linen stack to wool throw
-    if (products[4] && linenTopMeshRight) {
-      linenTopMeshRight.userData.product = products[4];
+    if (products[3] && linenTopMeshRight) {
+      linenTopMeshRight.userData.product = products[3];
       linenTopMeshRight.userData.mesh    = linenTopMeshRight;
       productPlanes.push(linenTopMeshRight);
+    }
+    // Link middle spray bottle
+    if (products[4] && sprayBottleMidMesh) {
+      sprayBottleMidMesh.userData.product = products[4];
+      sprayBottleMidMesh.userData.mesh    = sprayBottleMidMesh;
+      productPlanes.push(sprayBottleMidMesh);
     }
 
     // ── HOVER LABEL ───────────────────────────────────────────────────────────

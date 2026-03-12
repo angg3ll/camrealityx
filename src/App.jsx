@@ -1203,6 +1203,7 @@ export default function SocialArcade() {
   const [activeCrew, setActiveCrew]   = useState("maya");
   const [requestedCrew, setRequestedCrew] = useState([]);
   const [showroom, setShowroom]       = useState(null);
+  const [compatPct]                   = useState(() => Math.floor(Math.random() * 9) + 75);
   const msgEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -1616,7 +1617,7 @@ export default function SocialArcade() {
 
           <div className="taste-right">
             <div className="compat-card">
-              <div className="compat-num">82%</div>
+              <div className="compat-num">{compatPct}%</div>
               <div className="compat-lbl" style={{marginTop:4}}>
                 match to the{' '}
                 <em>{activeTags[0] || 'minimal'}</em> aesthetic
@@ -1706,7 +1707,7 @@ export default function SocialArcade() {
                       tags: activeTags,
                       palette: aiPalette,
                       title: crewType,
-                      spaceType: 'Your Space',
+                      spaceType: 'My Space',
                       color: '#e8b84b',
                     })}>⬡ Showroom</button>
                 )}
