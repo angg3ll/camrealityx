@@ -1,4 +1,8 @@
 import { useState, useEffect, useRef } from "react";
+import Showroom3D      from "./components/Showroom3D.jsx";
+import ShowroomSoleil  from "./components/ShowroomSoleil.jsx";
+import ShowroomDaniel  from "./components/ShowroomDaniel.jsx";
+import ShowroomMaya    from "./components/ShowroomMaya.jsx";
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=IBM+Plex+Mono:wght@300;400;500&display=swap');`;
 
@@ -74,54 +78,54 @@ Keep tags to 5, palette to 3 hex colours dominant in the images, crewType exactl
 
 // ── UNSPLASH PRODUCT IMAGES ───────────────────────────────────────────────────
 const UNSPLASH_PRODUCTS = [
-  { id:1,  name:"Linen Overshirt",   brand:"Arket",    price:"£89",  match:true,  rx:{you:"❤️",friend:"❤️"}, img:"https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=400&q=80" },
-  { id:2,  name:"Ceramic Mug",       brand:"Aesop",    price:"£45",  match:true,  rx:{you:null,friend:"😍"}, img:"https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=400&q=80" },
-  { id:3,  name:"Merino Knit",       brand:"COS",      price:"£120", match:false, rx:{you:"❤️",friend:null}, img:"https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400&q=80" },
-  { id:4,  name:"Raw Edge Notebook", brand:"Papier",   price:"£28",  match:false, rx:{you:null,friend:null}, img:"https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=400&q=80" },
-  { id:5,  name:"Oak Side Table",    brand:"MUJI",     price:"£199", match:true,  rx:{you:"❤️",friend:"❤️"}, img:"https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=80" },
-  { id:6,  name:"Vetiver Candle",    brand:"Diptyque", price:"£58",  match:false, rx:{you:null,friend:"❤️"}, img:"https://images.unsplash.com/photo-1602178506049-6368a8c2ddbd?w=400&q=80" },
+  { id:1,  name:"Linen Overshirt",   brand:"Arket",    price:"£89",  match:true,  rx:{you:"❤️",friend:"❤️"}, img:"https://images.unsplash.com/photo-1713881842156-3d9ef36418cc?w=400&q=80" },
+  { id:2,  name:"Ceramic Mug",       brand:"Urban Outfitters",    price:"£25",  match:true,  rx:{you:null,friend:"😍"}, img:"https://images.unsplash.com/photo-1649270716777-1bd08cb443f5?w=400&q=80" },
+  { id:3,  name:"Merino Chunky Knit",       brand:"COS",      price:"£100", match:false, rx:{you:"❤️",friend:null}, img:"https://images.unsplash.com/photo-1631541909061-71e349d1f203?w=400&q=80" },
+  { id:4,  name:"Raw Edge Notebook", brand:"Papier",   price:"£28",  match:false, rx:{you:null,friend:null}, img:"https://images.unsplash.com/photo-1621168854680-9250096b4a27?w=400&q=80" },
+  { id:5,  name:"Oak Display Tray",    brand:"MUJI",     price:"£9", match:true,  rx:{you:"❤️",friend:"❤️"}, img:"https://images.unsplash.com/photo-1645020089957-608f1f0dfb61?w=400&q=80" },
+  { id:6,  name:"Soy Candle",    brand:"Yankee Candles", price:"£18",  match:false, rx:{you:null,friend:"❤️"}, img:"https://images.unsplash.com/photo-1612293905607-b003de9e54fb?w=400&q=80" },
   { id:7,  name:"Canvas Tote",       brand:"Baggu",    price:"£35",  match:false, rx:{you:"😍",friend:null}, img:"https://images.unsplash.com/photo-1544816155-12df9643f363?w=400&q=80" },
-  { id:8,  name:"Wool Throw",        brand:"Hay",      price:"£145", match:true,  rx:{you:"❤️",friend:"😍"}, img:"https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=400&q=80" },
+  { id:8,  name:"Wool Throw",        brand:"Hay",      price:"£145", match:true,  rx:{you:"❤️",friend:"😍"}, img:"https://images.unsplash.com/photo-1639109743189-91a3ec8b0437?w=400&q=80" },
 ];
 
 // ── TASTE GRAPH PRODUCTS ───────────────────────────────────────────────────────
 const TASTE_PRODUCTS = [
-  { id:'tp1', name:'Beeswax Taper Candles', shop:'Hive & Hearth', price:'£22', tags:['earthy','organic','warm'],    img:'https://images.unsplash.com/photo-1608042314453-ae338d5c9742?w=400&q=80' },
-  { id:'tp2', name:'Hand-thrown Clay Bowl', shop:'Toyo Kiln',      price:'£38', tags:['organic','warm','textured'],  img:'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400&q=80' },
-  { id:'tp3', name:'Linen Cushion Cover',   shop:'Still Meadow',   price:'£34', tags:['minimal','refined','warm'],   img:'https://images.unsplash.com/photo-1540574163026-643ea20ade25?w=400&q=80' },
-  { id:'tp4', name:'Merino Wool Throw',     shop:'Highland Fibre', price:'£145',tags:['warm','textured','refined'],  img:'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=400&q=80' },
-  { id:'tp5', name:'Oak Serving Board',     shop:'Workshop No.7',  price:'£64', tags:['earthy','organic','natural'], img:'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400&q=80' },
-  { id:'tp6', name:'Vetiver Room Spray',    shop:'Atelier No.3',   price:'£48', tags:['refined','warm','minimal'],   img:'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=400&q=80' },
+  { id:'tp1', name:'Beeswax Taper Candles', shop:'Hive & Hearth', price:'£22', tags:['earthy','organic','warm'],    img:'https://images.unsplash.com/photo-1732117924212-39bfaec174c9?w=400&q=80' },
+  { id:'tp6', name:'Hand-thrown Clay Bowl', shop:'Toyo Kiln',      price:'£38', tags:['organic','warm','textured'],  img:'https://images.unsplash.com/photo-1621453571761-1fd23ec15396?w=400&q=80' },
+  { id:'tp3', name:'Linen Pillow Cover',   shop:'Still Meadow',   price:'£34', tags:['minimal','refined','warm'],   img:'https://images.unsplash.com/photo-1730580015629-d07e58d81c32?w=400&q=80' },
+  { id:'tp4', name:'Merino Wool Throw',     shop:'Highland Fibre', price:'£145',tags:['warm','textured','refined'],  img:'https://images.unsplash.com/photo-1548536207-7b32566ca27d?w=400&q=80' },
+  { id:'tp5', name:'Oak Tray',     shop:'Workshop No.7',  price:'£64', tags:['earthy','organic','natural'], img:'https://images.unsplash.com/photo-1657981190934-5a31370aa54f?w=400&q=80' },
+  { id:'tp2', name:'Lavender Room Spray',    shop:'Atelier No.3',   price:'£48', tags:['refined','warm','minimal'],   img:'https://images.unsplash.com/photo-1683559086021-7f5e3b5e11cb?w=400&q=80' },
 ];
 
 // ── SMALL SHOP PRODUCTS ────────────────────────────────────────────────────────
 const SMALL_SHOP_PRODUCTS = [
-  { id:'s1', name:'Hand-dyed Indigo Scarf', brand:'Studio Wabi',    price:'£52', match:false, rx:{you:"❤️",friend:null},  img:'https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?w=400&q=80' },
-  { id:'s2', name:'Speckled Thrown Mug',    brand:'Earthen Kiln',   price:'£28', match:true,  rx:{you:"❤️",friend:"❤️"},  img:'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=400&q=80' },
-  { id:'s3', name:'Beeswax Block Candle',   brand:'Hive & Hearth',  price:'£19', match:false, rx:{you:"😍",friend:null},  img:'https://images.unsplash.com/photo-1602178506049-6368a8c2ddbd?w=400&q=80' },
-  { id:'s4', name:'Washed Linen Napkins',   brand:'Still Table',    price:'£36', match:true,  rx:{you:null, friend:"❤️"}, img:'https://images.unsplash.com/photo-1540574163026-643ea20ade25?w=400&q=80' },
-  { id:'s5', name:'Pressed Botanicals Art', brand:'Paper & Pine',   price:'£54', match:false, rx:{you:"❤️",friend:null},  img:'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&q=80' },
-  { id:'s6', name:'Raw Clay Bud Vase',      brand:'Form & Earth',   price:'£44', match:false, rx:{you:null, friend:"😍"}, img:'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400&q=80' },
-  { id:'s7', name:'Palo Santo Bundle',      brand:'Earth & Ember',  price:'£16', match:true,  rx:{you:"❤️",friend:"❤️"},  img:'https://images.unsplash.com/photo-1608042314453-ae338d5c9742?w=400&q=80' },
-  { id:'s8', name:'Hand-knit Wool Socks',   brand:'The Yarn Shed',  price:'£24', match:false, rx:{you:"😍",friend:null},  img:'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400&q=80' },
+  { id:'s1', name:'Hand-dyed Knitted Scarf', brand:'Studio Wabi',    price:'£32', match:false, rx:{you:"❤️",friend:null},  img:'https://images.unsplash.com/photo-1457545195570-67f207084966?w=400&q=80' },
+  { id:'s2', name:'Speckled Thrown Mug',    brand:'Earthen Kiln',   price:'£27', match:true,  rx:{you:"❤️",friend:"❤️"},  img:'https://images.unsplash.com/photo-1729441733364-37e7df95fa70?w=400&q=80' },
+  { id:'s3', name:'Beeswax Block Candle',   brand:'Hive & Hearth',  price:'£11', match:false, rx:{you:"😍",friend:null},  img:'https://images.unsplash.com/photo-1732117924212-39bfaec174c9?w=400&q=80' },
+  { id:'s4', name:'Washed Linen Napkins',   brand:'Vala',    price:'£16', match:true,  rx:{you:null, friend:"❤️"}, img:'https://images.unsplash.com/photo-1635207945702-98fdc3df9d90?w=400&q=80' },
+  { id:'s5', name:'Pressed Botanicals Art', brand:'Paper & Pine',   price:'£34', match:false, rx:{you:"❤️",friend:null},  img:'https://images.unsplash.com/photo-1621620211152-db44233d5b6c?w=400&q=80' },
+  { id:'s6', name:'Raw Clay Bud Vase Set',      brand:'Form & Earth',   price:'£44', match:false, rx:{you:null, friend:"😍"}, img:'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400&q=80' },
+  { id:'s7', name:'Palo Santo Bundle',      brand:'Earth & Ember',  price:'£16', match:true,  rx:{you:"❤️",friend:"❤️"},  img:'https://images.unsplash.com/photo-1597717503010-ee19fef2db91?w=400&q=80' },
+  { id:'s8', name:'Hand-knit Wool Socks',   brand:'The Yarn Shed',  price:'£24', match:false, rx:{you:"😍",friend:null},  img:'https://images.unsplash.com/photo-1641399050826-9616c90427bb?w=400&q=80' },
 ];
 
 // ── CREW MEMBERS ──────────────────────────────────────────────────────────────
 const CREW_MEMBERS = [
   { id:'maya', name:'Maya',   avatar:'M', color:'#00f0e0', compat:78, type:'Warm Minimalist', tags:['minimal','coastal','organic'], picks:['tp2','tp3'] },
-  { id:'sol',  name:'Sol',    avatar:'S', color:'#c8a8f0', compat:71, type:'Soft Botanical',  tags:['natural','soft','earthy'],     picks:['tp1','tp5'] },
-  { id:'jun',  name:'Jun',    avatar:'J', color:'#ff00cc', compat:64, type:'Urban Refined',   tags:['minimal','sharp','refined'],   picks:['tp4','tp6'] },
+  { id:'soleil',  name:'Soleil',    avatar:'S', color:'#c8a8f0', compat:71, type:'Soft Botanical',  tags:['natural','soft','earthy'],     picks:['tp1','tp5'] },
+  { id:'daniel',  name:'Daniel',    avatar:'D', color:'#ff00cc', compat:64, type:'Urban Refined',   tags:['minimal','sharp','edgy'],   picks:['tp4','tp6'] },
 ];
 
 const SWIPE_ITEMS = [
-  { id:1, name:"Raw Linen & Stone",  bg:"#b5a48a", tags:["minimal","earthy","organic"],  photo:"https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=400&h=560&q=80" },
-  { id:2, name:"Dark Academia",      bg:"#2d2416", tags:["moody","classical","layered"], photo:"https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=400&h=560&q=80" },
+  { id:1, name:"Raw Linen & Stone",  bg:"#b5a48a", tags:["minimal","earthy","organic"],  photo:"https://images.unsplash.com/photo-1591625591034-75d303d2e1a4?auto=format&fit=crop&w=400&h=560&q=80" },
+  { id:2, name:"Dark Academia",      bg:"#2d2416", tags:["moody","classical","layered"], photo:"https://images.unsplash.com/photo-1698360308488-48a0f089ec3c?auto=format&fit=crop&w=400&h=560&q=80" },
   { id:3, name:"Clean & Precise",    bg:"#d8d8d8", tags:["minimal","modern","sharp"],    photo:"https://images.unsplash.com/photo-1565791380713-1756b9a05343?auto=format&fit=crop&w=400&h=560&q=80" },
-  { id:4, name:"Warm Maximalist",    bg:"#c47a3a", tags:["bold","warm","textured"],      photo:"https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=400&h=560&q=80" },
-  { id:5, name:"Soft Botanical",     bg:"#7aaa82", tags:["natural","soft","organic"],    photo:"https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=400&h=560&q=80" },
+  { id:4, name:"Warm Maximalist",    bg:"#c47a3a", tags:["bold","warm","textured"],      photo:"https://images.unsplash.com/photo-1650137938625-11576502aecd?auto=format&fit=crop&w=400&h=560&q=80" },
+  { id:5, name:"Soft Botanical",     bg:"#7aaa82", tags:["natural","soft","organic"],    photo:"https://images.unsplash.com/photo-1656115884764-0dff3589108b?auto=format&fit=crop&w=400&h=560&q=80" },
   { id:6, name:"Urban Edge",         bg:"#1a1a2e", tags:["dark","urban","graphic"],      photo:"https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=400&h=560&q=80" },
   { id:7, name:"Coastal Luxury",     bg:"#a8c5c5", tags:["airy","refined","coastal"],    photo:"https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=400&h=560&q=80" },
-  { id:8, name:"Vintage Revival",    bg:"#d4a56a", tags:["nostalgic","warm","retro"],    photo:"https://images.unsplash.com/photo-1532522750741-628fde798c73?auto=format&fit=crop&w=400&h=560&q=80" },
+  { id:8, name:"Vintage Revival",    bg:"#d4a56a", tags:["nostalgic","warm","retro"],    photo:"https://images.unsplash.com/photo-1509281373149-e957c6296406?auto=format&fit=crop&w=400&h=560&q=80" },
 ];
 
 const YOU_NODES  = [
@@ -130,7 +134,7 @@ const YOU_NODES  = [
   {label:"organic", x:62,y:58,r:11,c:"#ff2d78"},
   {label:"warm",    x:44,y:70,r:15,c:"#ff2d78"},
   {label:"refined", x:74,y:38,r:10,c:"#ff2d78"},
-  {label:"textured",x:20,y:34,r:10,c:"#ff2d78"},
+  {label:"bohemian",x:20,y:34,r:10,c:"#ff2d78"},
 ];
 
 const FRIEND_NODES = [
@@ -281,6 +285,8 @@ const STYLE = `
     letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; transition: all 0.2s;
   }
   .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+  .share-taste-link { background: none; border: none; cursor: pointer; font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(240,235,255,0.35); padding: 6px 0; transition: color 0.2s; }
+  .share-taste-link:hover { color: var(--gold); }
 
   /* ── ONBOARDING ── */
   .onboarding {
@@ -425,7 +431,10 @@ const STYLE = `
   .sec-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(32px,7vw,64px); letter-spacing: 0.05em; text-align: center; color: var(--cream); position: relative; margin-top: 8px; animation: fadeUp 0.5s 0.1s ease both; }
   .sec-sub { font-family: 'Crimson Pro', serif; font-size: 18px; font-style: italic; color: var(--muted); text-align: center; position: relative; margin-top: 6px; animation: fadeUp 0.5s 0.15s ease both; }
 
-  .constellation { position: relative; width: min(480px,88vw); height: min(480px,88vw); margin: 20px auto; }
+  .taste-layout { display: flex; align-items: flex-start; gap: 48px; width: 100%; max-width: 960px; margin-top: 20px; }
+  .taste-left { display: flex; flex-direction: column; align-items: center; flex: 1 1 auto; }
+  .taste-right { display: flex; flex-direction: column; align-items: center; flex: 0 0 300px; padding-top: 60px; }
+  .constellation { position: relative; width: min(480px,88vw); height: min(480px,88vw); margin: 0 auto; }
 
   /* AI summary card */
   .ai-summary {
@@ -453,7 +462,7 @@ const STYLE = `
     box-shadow: 6px 6px 0 rgba(255,45,120,0.08); animation: fadeUp 0.6s 0.5s ease both;
   }
   .compat-card::before {
-    content: '✦ CREW COMPATIBILITY ✦';
+    content: '✦ YOUR RESULTS: ✦';
     position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
     font-size: 8px; letter-spacing: 0.25em; color: var(--gold);
     background: var(--surface); padding: 0 12px; white-space: nowrap;
@@ -512,6 +521,17 @@ const STYLE = `
   .stabs { display: flex; border-bottom: 1px solid var(--border); }
   .stab { flex: 1; padding: 14px 8px; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); cursor: pointer; border: none; background: transparent; transition: all 0.2s; border-bottom: 2px solid transparent; font-family: 'IBM Plex Mono', monospace; }
   .stab.on { color: var(--gold); border-bottom-color: var(--gold); }
+  .stab.teal.on { color: var(--teal); border-bottom-color: var(--teal); }
+  .wishlist-empty { text-align:center; color:var(--muted); font-size:11px; padding:32px 16px; line-height:1.6; }
+  .wishlist-list { display:flex; flex-direction:column; gap:10px; }
+  .wishlist-item { display:flex; align-items:center; gap:10px; padding:8px; border:1px solid var(--border); cursor:pointer; transition:border-color 0.2s; }
+  .wishlist-item:hover { border-color:var(--teal); }
+  .wishlist-img { width:44px; height:44px; object-fit:cover; flex-shrink:0; }
+  .wishlist-info { flex:1; min-width:0; }
+  .wishlist-name { font-size:11px; color:var(--cream); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .wishlist-price { font-size:10px; margin-top:2px; }
+  .wishlist-remove { background:none; border:none; color:var(--muted); cursor:pointer; font-size:10px; padding:4px; flex-shrink:0; }
+  .wishlist-remove:hover { color:var(--gold); }
   .sidebar-body { flex: 1; overflow-y: auto; padding: 20px; }
   .s-section { margin-bottom: 28px; }
   .s-eye { font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
@@ -593,11 +613,10 @@ const STYLE = `
   .tp-floating:hover .tp-float-tooltip { opacity:1; }
 
   /* ── PRODUCT OVERLAY ── */
-  .prod-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:1000; display:flex; align-items:flex-end; justify-content:center; animation:fadeIn 0.2s ease; }
+  .prod-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px; animation:fadeIn 0.2s ease; }
   @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
   .prod-overlay-inner { position:relative; width:100%; max-width:720px; }
-  .prod-drawer { width:100%; background:var(--surface); border-top:1px solid rgba(255,45,120,0.2); max-height:90vh; overflow-y:auto; animation:slideUp 0.32s cubic-bezier(0.22,1,0.36,1); }
-  @keyframes slideUp { from{transform:translateY(100%);} to{transform:translateY(0);} }
+  .prod-drawer { width:100%; background:var(--surface); border:1px solid rgba(255,45,120,0.2); max-height:85vh; overflow-y:auto; animation:fadeUp 0.28s cubic-bezier(0.22,1,0.36,1); }
   .prod-drawer-inner { display:grid; grid-template-columns:1fr 1fr; }
   @media (max-width:600px) { .prod-drawer-inner { grid-template-columns:1fr; } }
   .prod-big-img { width:100%; height:100%; min-height:320px; object-fit:cover; display:block; }
@@ -652,7 +671,7 @@ const STYLE = `
 
   /* ── SHOWROOM 3D — cosy boutique ── */
   .sr-overlay {
-    position:fixed; inset:0; z-index:1500; overflow:hidden;
+    position:fixed; inset:0; z-index:500; overflow:hidden;
     background:#f5f0d8;
     perspective:1400px; perspective-origin:50% 38%;
     animation:srFadeIn 0.5s ease both;
@@ -1162,268 +1181,8 @@ function Constellation({ nodesA, nodesB = [], showBoth = false, w = 480 }) {
   );
 }
 
-// ── HANGER ITEM — clothing rail ───────────────────────────────────────────────
-function SRHangerItem({ p, accent, delay, left, onClick }) {
-  return (
-    <div className="sr-hanger-item"
-      style={{ animationDelay: `${delay}s`, left: `${left}%` }}
-      onClick={onClick}>
-      <div className="sr-hanger-hook"/>
-      <div className="sr-hanger-neck"/>
-      <div className="sr-hanger-bar"/>
-      <div className="sr-garment-wrap">
-        <img src={p.img} alt={p.name || ''}
-          onError={e => { e.target.style.background = '#e8e6e0'; }}/>
-      </div>
-      <div className="sr-price-tag">
-        <span className="sr-pt-name">{p.name}</span>
-        <span className="sr-pt-price" style={{ color: accent }}>{p.price}</span>
-      </div>
-    </div>
-  );
-}
-
-// ── SHELF ITEM — display shelf ─────────────────────────────────────────────────
-function SRShelfItem({ p, accent, delay, left, onClick }) {
-  return (
-    <div className="sr-shelf-item"
-      style={{ animationDelay: `${delay}s`, left: `${left}%` }}
-      onClick={onClick}>
-      <div className="sr-shelf-img-wrap">
-        <img src={p.img} alt={p.name || ''}
-          onError={e => { e.target.style.background = '#e8e6e0'; }}/>
-      </div>
-      <div className="sr-price-tag">
-        <span className="sr-pt-name">{p.name}</span>
-        <span className="sr-pt-price" style={{ color: accent }}>{p.price}</span>
-      </div>
-    </div>
-  );
-}
-
-// ── SHOWROOM 3D — true CSS preserve-3d box room ────────────────────────────────
-function Showroom3D({ products, tags, palette, title, spaceType, color, onClose, onSelectProduct }) {
-  const [lookY, setLookY] = useState(0);   // horizontal rotation (yaw)
-  const [lookX, setLookX] = useState(9);   // vertical tilt (pitch) — slight downward
-  const [entered, setEntered] = useState(false);
-  const drag = useRef({ on: false, x: 0, y: 0, ly: 0, lx: 0 });
-
-  // Walk-in animation
-  useEffect(() => {
-    const t = setTimeout(() => setEntered(true), 60);
-    return () => clearTimeout(t);
-  }, []);
-
-  // Arrow-key look around + Escape to exit
-  useEffect(() => {
-    const h = e => {
-      if (e.key === 'ArrowLeft')  setLookY(y => Math.max(-48, y - 11));
-      if (e.key === 'ArrowRight') setLookY(y => Math.min(48,  y + 11));
-      if (e.key === 'ArrowUp')    setLookX(x => Math.min(20,  x + 5));
-      if (e.key === 'ArrowDown')  setLookX(x => Math.max(-5,  x - 5));
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', h);
-    return () => window.removeEventListener('keydown', h);
-  }, [onClose]);
-
-  const accent = palette?.[0] || color || '#e8b84b';
-
-  // Distribute products: left wall, right wall (alternating), back wall gets first few as hero
-  const wallL = products.filter((_, i) => i % 2 === 0).slice(0, 3);
-  const wallR = products.filter((_, i) => i % 2 === 1).slice(0, 3);
-
-  // Pointer-drag to look around
-  const onPD = e => {
-    drag.current = { on: true, x: e.clientX, y: e.clientY, ly: lookY, lx: lookX };
-    e.currentTarget.setPointerCapture(e.pointerId);
-  };
-  const onPM = e => {
-    if (!drag.current.on) return;
-    setLookY(Math.max(-48, Math.min(48, drag.current.ly + (e.clientX - drag.current.x) * 0.26)));
-    setLookX(Math.max(-5,  Math.min(20, drag.current.lx - (e.clientY - drag.current.y) * 0.09)));
-  };
-  const onPU = () => { drag.current.on = false; };
-
-  // Walk-in: start pulled back, settle at entrance
-  const tz = entered ? 0 : -580;
-  const roomTransform = `translateZ(${tz}px) rotateX(${lookX}deg) rotateY(${lookY}deg)`;
-  const roomTransition = entered ? 'transform 1s cubic-bezier(0.22,1,0.36,1)' : 'none';
-
-  const lightPositions = [12, 28, 44, 56, 72, 88];
-  const hangerPositions = [22, 50, 78];
-  const shelfPositions  = [40, 58, 76];  // shifted right to clear back-corner fitting room
-
-  return (
-    <div className="sr-overlay"
-      style={{ cursor: drag.current.on ? 'grabbing' : 'grab' }}
-      onPointerDown={onPD} onPointerMove={onPM} onPointerUp={onPU}>
-
-      {/* ── TRUE 3D ROOM ── */}
-      <div className="sr-room" style={{ transform: roomTransform, transition: roomTransition }}>
-
-        {/* FLOOR — polished white/grey tile */}
-        <div className="sr-floor">
-          <div className="sr-floor-grid" style={{
-            backgroundImage: `
-              linear-gradient(rgba(168,158,120,0.28) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(168,158,120,0.28) 1px, transparent 1px)`,
-            backgroundSize: '80px 80px',
-            backgroundColor: '#ece8c4',
-          }}/>
-          <div className="sr-floor-sheen"/>
-          <div className="sr-floor-rug"/>
-          {/* Soft warm light pools */}
-          {[20, 50, 80].map(l => (
-            <div key={l} className="sr-floor-spot" style={{
-              left: `${l}%`,
-              background: 'radial-gradient(ellipse 110px 130px at 50% 100%, rgba(255,248,220,0.22) 0%, transparent 100%)',
-            }}/>
-          ))}
-        </div>
-
-        {/* CEILING — white with black track lighting */}
-        <div className="sr-ceiling">
-          <div className="sr-track-rail"/>
-          {lightPositions.map(l => (
-            <div key={l} className="sr-light" style={{ left: `${l}%` }}>
-              <div className="sr-light-stem"/>
-              <div className="sr-light-bulb" style={{
-                boxShadow: '0 0 6px rgba(255,245,200,0.9), 0 0 18px rgba(255,245,200,0.4)',
-              }}/>
-              <div className="sr-light-cone" style={{
-                background: 'radial-gradient(ellipse 120px 560px at 50% 0%, rgba(255,248,210,0.12) 0%, transparent 65%)',
-              }}/>
-            </div>
-          ))}
-        </div>
-
-        {/* BACK WALL — display table with featured items */}
-        <div className="sr-back-wall-face">
-          <div className="sr-back-atm" style={{
-            background: `radial-gradient(ellipse 70% 55% at 50% 30%, ${accent}0d 0%, transparent 65%)`,
-          }}/>
-          <div className="sr-store-sign">
-            <div className="sr-sign-type">{spaceType}</div>
-            <div className="sr-sign-name">{title}</div>
-            <div className="sr-sign-rule"/>
-          </div>
-          <div className="sr-tag-cloud">
-            {tags.slice(0, 5).map((t, i) => (
-              <span key={t} className="sr-tag"
-                style={{ borderColor:`${accent}44`, color:`${accent}cc`, animationDelay:`${0.5+i*0.07}s` }}>
-                {t}
-              </span>
-            ))}
-          </div>
-          {/* Couch — 3D */}
-          <div className="sr-couch">
-            <div style={{transformStyle:'preserve-3d', transform:'translateZ(30px)'}}>
-              <div className="sr-couch-inner" style={{transformStyle:'preserve-3d'}}>
-                <div className="sr-couch-arm sr-couch-arm-l" style={{transformStyle:'preserve-3d'}}>
-                  <div className="sr-couch-arm-top"/>
-                </div>
-                <div className="sr-couch-arm sr-couch-arm-r" style={{transformStyle:'preserve-3d'}}>
-                  <div className="sr-couch-arm-top"/>
-                </div>
-                <div className="sr-couch-body" style={{transformStyle:'preserve-3d'}}>
-                  <div className="sr-couch-back" style={{transformStyle:'preserve-3d', position:'relative'}}>
-                    <div className="sr-couch-back-cushion"/>
-                    <div className="sr-couch-back-cushion"/>
-                    <div className="sr-couch-back-cushion"/>
-                    <div className="sr-couch-back-top"/>
-                  </div>
-                  <div className="sr-couch-seat" style={{transformStyle:'preserve-3d', position:'relative'}}>
-                    <div className="sr-couch-seat-cushion"/>
-                    <div className="sr-couch-seat-cushion"/>
-                    <div className="sr-couch-seat-cushion"/>
-                    <div className="sr-couch-seat-top"/>
-                  </div>
-                </div>
-                <div className="sr-pillow" style={{left:'38px', background:'linear-gradient(135deg,#e8d0a8,#d4b888)'}}/>
-                <div className="sr-pillow" style={{right:'42px', top:'12px', background:'linear-gradient(135deg,#c0d4b0,#90b880)', transform:'rotate(8deg)'}}/>
-              </div>
-              <div className="sr-couch-legs">
-                <div className="sr-couch-leg"/>
-                <div className="sr-couch-leg"/>
-                <div className="sr-couch-leg"/>
-                <div className="sr-couch-leg"/>
-              </div>
-            </div>
-          </div>
-          {/* Side table with plant — 3D */}
-          <div className="sr-side-table">
-            <div style={{transformStyle:'preserve-3d', transform:'translateZ(24px)'}}>
-              <div className="sr-table-plant"/>
-              <div className="sr-side-table-top"/>
-              <div className="sr-side-table-stem"/>
-              <div className="sr-side-table-base"/>
-            </div>
-          </div>
-        </div>
-
-        {/* LEFT WALL — clothing rack with floor stands */}
-        <div className="sr-left-wall">
-          <div className="sr-clothing-rail-bar"/>
-          <div className="sr-rack-pole" style={{left:'68px'}}/>
-          <div className="sr-rack-pole" style={{right:'68px'}}/>
-          {wallL.map((p, i) => (
-            <SRHangerItem key={p.id || i} p={p} accent={accent}
-              delay={0.18 + i * 0.13} left={hangerPositions[i]}
-              onClick={() => onSelectProduct(p)}/>
-          ))}
-        </div>
-
-        {/* RIGHT WALL — fitting room in back corner + display shelf */}
-        <div className="sr-right-wall">
-          {/* Fitting room — back corner */}
-          <div className="sr-fitting-room">
-            <div className="sr-fitting-room-sign">⬡ &nbsp; Fitting Room</div>
-            <div className="sr-fitting-curtain-rod"/>
-            <div className="sr-fitting-curtain"/>
-            <div className="sr-fitting-room-wall"/>
-          </div>
-          {/* Full-length mirror beside fitting room */}
-          <div className="sr-fitting-mirror"/>
-          {/* Display shelf (shifted toward entrance side) */}
-          <div className="sr-wall-shelf-bar">
-            <div className="sr-shelf-bracket sr-shelf-bracket-l"/>
-            <div className="sr-shelf-bracket sr-shelf-bracket-r"/>
-          </div>
-          {wallR.map((p, i) => (
-            <SRShelfItem key={p.id || i} p={p} accent={accent}
-              delay={0.26 + i * 0.13} left={shelfPositions[i]}
-              onClick={() => onSelectProduct(p)}/>
-          ))}
-        </div>
-
-      </div>
-
-      {/* ── NAV ARROWS ── */}
-      <button className="sr-nav sr-nav-l" onClick={() => setLookY(y => Math.max(-48, y - 13))}>‹</button>
-      <button className="sr-nav sr-nav-r" onClick={() => setLookY(y => Math.min(48,  y + 13))}>›</button>
-
-      {/* ── HUD top ── */}
-      <div className="sr-hud-top">
-        <div className="sr-hud-left">
-          <div className="sr-hud-eyebrow" style={{ color: accent }}>✦ {spaceType}</div>
-          <div className="sr-hud-name">{title}</div>
-        </div>
-        <button className="sr-exit-btn" onClick={onClose}>✕ &nbsp; Exit Showroom</button>
-      </div>
-
-      {/* ── HUD bottom ── */}
-      <div className="sr-hud-bottom">
-        <span className="sr-hint">Drag to look · ← → arrow keys · Click a piece to view</span>
-        <span className="sr-count" style={{ color: accent }}>{products.length} pieces</span>
-      </div>
-
-    </div>
-  );
-}
-
 // ── MAIN APP ──────────────────────────────────────────────────────────────────
-export default function ArcadeCrew() {
+export default function SocialArcade() {
   const [screen, setScreen]         = useState("landing");
   const [swipeIdx, setSwipeIdx]     = useState(0);
   const [liked, setLiked]           = useState([]);
@@ -1438,8 +1197,10 @@ export default function ArcadeCrew() {
   const [aiResult, setAiResult]     = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [addedToBag, setAddedToBag]   = useState(false);
+  const [wishlist, setWishlist]       = useState([]);
   const [productTab, setProductTab]   = useState("all");
   const [activeCrew, setActiveCrew]   = useState("maya");
+  const [requestedCrew, setRequestedCrew] = useState([]);
   const [showroom, setShowroom]       = useState(null);
   const msgEndRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -1566,9 +1327,17 @@ export default function ArcadeCrew() {
 
   // Map each taste product to its closest matching constellation node + thumbnail position
   const activeNodes = aiResult ? dynamicNodes : YOU_NODES;
+
+  // Sort products by how many of their tags match the user's active tags (most relevant first)
+  const sortedTasteProducts = [...TASTE_PRODUCTS].sort((a, b) => {
+    const aScore = a.tags.filter(t => activeTags.includes(t)).length;
+    const bScore = b.tags.filter(t => activeTags.includes(t)).length;
+    return bScore - aScore;
+  });
+
   const tasteProductNodes = (() => {
     const used = new Set();
-    return TASTE_PRODUCTS.map(product => {
+    return sortedTasteProducts.map(product => {
       // Find best unmatched node by tag overlap
       let bestNode = null;
       for (const tag of product.tags) {
@@ -1578,12 +1347,23 @@ export default function ArcadeCrew() {
       if (!bestNode) bestNode = activeNodes.find(n => !used.has(n.label)) || activeNodes[0];
       used.add(bestNode.label);
 
-      // Offset thumbnail outward from center so it sits just outside the node
+      // Offset thumbnail outward from center, preserving dist even near edges
       const cx = 50, cy = 50;
       const angle = Math.atan2(bestNode.y - cy, bestNode.x - cx);
-      const dist = 17;
-      const thumbX = Math.min(88, Math.max(12, bestNode.x + Math.cos(angle) * dist));
-      const thumbY = Math.min(88, Math.max(12, bestNode.y + Math.sin(angle) * dist));
+      const dist = (bestNode.label === 'organic' || bestNode.label === 'warm') ? 10 : 16;
+      const CMIN = 8, CMAX = 90;
+      let tx = bestNode.x + Math.cos(angle) * dist;
+      let ty = bestNode.y + Math.sin(angle) * dist;
+      if (tx < CMIN || tx > CMAX) {
+        tx = Math.max(CMIN, Math.min(CMAX, tx));
+        ty = bestNode.y + Math.sign(Math.sin(angle)) * Math.sqrt(Math.max(0, dist * dist - (tx - bestNode.x) ** 2));
+      }
+      if (ty < CMIN || ty > CMAX) {
+        ty = Math.max(CMIN, Math.min(CMAX, ty));
+        tx = Math.max(CMIN, Math.min(CMAX, bestNode.x + Math.sign(Math.cos(angle)) * Math.sqrt(Math.max(0, dist * dist - (ty - bestNode.y) ** 2))));
+      }
+      const thumbX = tx;
+      const thumbY = ty;
       return { product, node: bestNode, thumbX, thumbY };
     });
   })();
@@ -1599,9 +1379,8 @@ export default function ArcadeCrew() {
         <div className="landing-bg"/>
         <div className="grid-floor"/>
         <div className="wordmark">
-          <div className="wm-top">ARCADE</div>
-          <div className="wm-bot">CREW</div>
-          <div className="wm-sub">✦ ARC ✦</div>
+          <div className="wm-top">SOCIAL</div>
+          <div className="wm-bot">ARCADE</div>
         </div>
         <div className="slogan">
           <div className="slogan-line"><span>Browse</span> together.</div>
@@ -1609,8 +1388,8 @@ export default function ArcadeCrew() {
           <div className="slogan-line"><span>Wander</span> together.</div>
         </div>
         <div className="landing-btns">
-          <button className="btn-gold" onClick={() => setScreen("onboarding")}>Build Your Crew</button>
-          <button className="btn-ghost" onClick={() => setScreen("taste")}>Skip to Demo →</button>
+          <button className="btn-gold" onClick={() => setScreen("onboarding")}>Find Your Style</button>
+          <button className="btn-ghost" onClick={() => setScreen("taste")}>Skip to Shop →</button>
         </div>
         <div className="ticker">
           <div className="ticker-inner">
@@ -1734,7 +1513,7 @@ export default function ArcadeCrew() {
           )}
           {analysing && (
             <>
-              <div className="analysing-label">Claude is reading your aesthetic...</div>
+              <div className="analysing-label">Gemini is reading your aesthetic...</div>
               <div className="analysing-bar"><div className="analysing-fill"/></div>
             </>
           )}
@@ -1747,7 +1526,6 @@ export default function ArcadeCrew() {
       {/* ── TASTE GRAPH ── */}
       <div className={`screen taste-screen ${screen==="taste"?"active":""}`}>
         <div className="taste-bg"/>
-        <div className="eyebrow">✦ Your Aesthetic Fingerprint</div>
         <div className="sec-title">Your Taste Graph</div>
         <div className="sec-sub">
           {aiResult
@@ -1771,97 +1549,135 @@ export default function ArcadeCrew() {
           </div>
         )}
 
-        <div className="constellation">
-          {/* Star-field + nodes */}
-          <Constellation nodesA={aiResult ? dynamicNodes : YOU_NODES} w={480}/>
+        <div className="taste-layout">
+          <div className="taste-left">
+            <div className="constellation">
+              {/* Star-field + nodes */}
+              <Constellation nodesA={aiResult ? dynamicNodes : YOU_NODES} w={480}/>
 
-          {/* SVG dashed connector lines: thumbnail → node */}
-          <svg className="constellation-overlay" aria-hidden="true">
-            {tasteProductNodes.map(({product, node, thumbX, thumbY}) => (
-              <line key={product.id}
-                x1={`${node.x}%`}    y1={`${node.y}%`}
-                x2={`${thumbX}%`}    y2={`${thumbY}%`}
-                stroke="rgba(255,45,120,0.22)"
-                strokeWidth="1"
-                strokeDasharray="4 3"
-              />
-            ))}
-          </svg>
+              {/* SVG dashed connector lines: thumbnail → node */}
+              <svg className="constellation-overlay" aria-hidden="true">
+                {tasteProductNodes.map(({product, node, thumbX, thumbY}) => (
+                  <line key={product.id}
+                    x1={`${node.x}%`}    y1={`${node.y}%`}
+                    x2={`${thumbX}%`}    y2={`${thumbY}%`}
+                    stroke="rgba(255,45,120,0.22)"
+                    strokeWidth="1"
+                    strokeDasharray="4 3"
+                  />
+                ))}
+              </svg>
 
-          {/* Floating product thumbnails pinned to their matching nodes */}
-          {tasteProductNodes.map(({product, thumbX, thumbY}, i) => (
-            <div key={product.id}
-              className="tp-floating"
-              style={{ left:`${thumbX}%`, top:`${thumbY}%`, animationDelay:`${0.25+i*0.1}s` }}
-              onClick={() => openProduct(product)}
-            >
-              <img className="tp-float-img" src={product.img} alt={product.name}
-                onError={e => { e.target.style.background='var(--surface2)'; }}
-              />
-              <div className="tp-float-tooltip">
-                <div>{product.name}</div>
-                <div style={{color:'var(--gold)',marginTop:2}}>{product.price}</div>
+              {/* Floating product thumbnails pinned to their matching nodes */}
+              {tasteProductNodes.map(({product, thumbX, thumbY}, i) => (
+                <div key={product.id}
+                  className="tp-floating"
+                  style={{ left:`${thumbX}%`, top:`${thumbY}%`, animationDelay:`${0.25+i*0.1}s` }}
+                  onClick={() => openProduct(product)}
+                >
+                  <img className="tp-float-img" src={product.img} alt={product.name}
+                    onError={e => { e.target.style.background='var(--surface2)'; }}
+                  />
+                  <div className="tp-float-tooltip">
+                    <div>{product.name}</div>
+                    <div style={{color:'var(--gold)',marginTop:2}}>{product.price}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="taste-chips">
+              {activeTags.map((tag,i)=>{
+                const c = COLOURS[i % COLOURS.length];
+                return(
+                  <span key={tag} className="taste-chip"
+                    style={{borderColor:c, color:c, animationDelay:`${i*0.07}s`}}>
+                    {tag}
+                  </span>
+                );
+              })}
+            </div>
+
+            <button className="share-taste-link" style={{marginTop:12}}
+              onClick={() => {
+                const url = window.location.origin;
+                if (navigator.share) {
+                  navigator.share({ title: 'My Taste Graph', text: 'Check out my taste graph on Social Arcade ✦', url });
+                } else {
+                  navigator.clipboard.writeText(url);
+                  alert('Link copied to clipboard!');
+                }
+              }}>
+              ✦ &nbsp; Share your taste graph
+            </button>
+          </div>
+
+          <div className="taste-right">
+            <div className="compat-card">
+              <div className="compat-num">82%</div>
+              <div className="compat-lbl" style={{marginTop:4}}>
+                match to the{' '}
+                <em>{activeTags[0] || 'minimal'}</em> aesthetic
               </div>
             </div>
-          ))}
+
+            <button className="sr-enter-btn" style={{marginTop:18}}
+              onClick={() => setShowroom({
+                products: sortedTasteProducts,
+                tags: activeTags,
+                palette: aiPalette,
+                title: crewType,
+                spaceType: 'My Space',
+                color: '#e8b84b',
+              })}>
+              ⬡ &nbsp; Enter Your Showroom
+            </button>
+
+            <button className="btn-gold" style={{marginTop:10,position:"relative"}}
+              onClick={()=>setScreen("shop")}>
+              Shop With Your Crew →
+            </button>
+
+            <button className="btn-ghost" style={{marginTop:8}}
+              onClick={() => {
+                const url = window.location.origin;
+                if (navigator.share) {
+                  navigator.share({ title: 'Social Arcade', text: 'Come shop with me on Social Arcade ✦', url });
+                } else {
+                  navigator.clipboard.writeText(url);
+                  alert('Link copied to clipboard!');
+                }
+              }}>
+              ✦ Invite Friends
+            </button>
+          </div>
+
         </div>
-
-        <div className="taste-chips">
-          {activeTags.map((tag,i)=>{
-            const c = COLOURS[i % COLOURS.length];
-            return(
-              <span key={tag} className="taste-chip"
-                style={{borderColor:c, color:c, animationDelay:`${i*0.07}s`}}>
-                {tag}
-              </span>
-            );
-          })}
-        </div>
-
-        <div className="compat-card">
-          <div className="compat-num">78%</div>
-          <div className="compat-lbl">"{crewType}s" — you & Maya</div>
-        </div>
-
-        <button className="sr-enter-btn" style={{marginTop:18}}
-          onClick={() => setShowroom({
-            products: TASTE_PRODUCTS,
-            tags: activeTags,
-            palette: aiPalette,
-            title: crewType,
-            spaceType: 'Your Space',
-            color: '#e8b84b',
-          })}>
-          ⬡ &nbsp; Enter Your Showroom
-        </button>
-
-        <button className="btn-gold" style={{marginTop:10,position:"relative"}}
-          onClick={()=>setScreen("shop")}>
-          Shop With Your Crew →
-        </button>
       </div>
 
       {/* ── SHOP TOGETHER ── */}
       <div className={`screen shop-screen ${screen==="shop"?"active":""}`}>
 
         {/* Friend cursor */}
-        <div className="friend-cursor" style={{left:cursor.x, top:cursor.y}}>
-          <div className="cursor-pip"/>
-          <div className="cursor-name">Maya is browsing</div>
-        </div>
+        {!showroom && (
+          <div className="friend-cursor" style={{left:cursor.x, top:cursor.y}}>
+            <div className="cursor-pip"/>
+            <div className="cursor-name">Maya is browsing</div>
+          </div>
+        )}
 
         {/* Header */}
         <div className="shop-hdr">
           <div className="shop-wm">
-            <div className="shop-wm-top">ARCADE</div>
-            <div className="shop-wm-bot">CREW</div>
+            <div className="shop-wm-top">SOCIAL</div>
+            <div className="shop-wm-bot">ARCADE</div>
           </div>
           <div className="session-bar">
             <div className="live-pip"/>
             <span>Live Session</span>
             <div className="crew-av" style={{borderColor:"#ff2d78",background:"rgba(255,45,120,0.08)",color:"#ff2d78"}}>Y</div>
             <div className="crew-av" style={{borderColor:"#00f0e0",background:"rgba(0,240,224,0.08)",color:"#00f0e0"}}>M</div>
-            <span style={{color:"#00f0e0"}}>Maya is here</span>
+            {!showroom && <span style={{color:"#00f0e0"}}>Maya is here</span>}
           </div>
           <button className="btn-ghost" style={{padding:"8px 20px"}} onClick={()=>setScreen("taste")}>
             ← Taste Graph
@@ -1903,6 +1719,17 @@ export default function ArcadeCrew() {
                       color: '#4ab8a0',
                     })}>⬡ Showroom</button>
                 )}
+                {productTab === "small" && (
+                  <button className="sr-enter-btn" style={{padding:'7px 16px',fontSize:'8px'}}
+                    onClick={() => setShowroom({
+                      products: SMALL_SHOP_PRODUCTS,
+                      tags: activeTags,
+                      palette: aiPalette,
+                      title: 'Small Shops',
+                      spaceType: 'Independent Makers',
+                      color: '#c8a87a',
+                    })}>⬡ Showroom</button>
+                )}
               </div>
             </div>
 
@@ -1910,7 +1737,7 @@ export default function ArcadeCrew() {
             <div className="ptabs">
               <button className={`ptab ${productTab==="all"?"on":""}`}   onClick={()=>setProductTab("all")}>All</button>
               <button className={`ptab ${productTab==="crew"?"on":""}`}  onClick={()=>setProductTab("crew")}>Crew Overlap</button>
-              <button className={`ptab teal ${productTab==="small"?"on":""}`} onClick={()=>setProductTab("small")}>✦ Small Shops</button>
+              <button className={`ptab teal ${productTab==="small"?"on":""}`} onClick={()=>{ setProductTab("small"); setSideTab("wishlist"); }}>✦ Small Shops</button>
             </div>
 
             <div className="products-grid">
@@ -1951,9 +1778,10 @@ export default function ArcadeCrew() {
           {/* Sidebar */}
           <div className="sidebar">
             <div className="stabs">
-              <button className={`stab ${sideTab==="overlap"?"on":""}`} onClick={()=>setSideTab("overlap")}>Taste</button>
-              <button className={`stab ${sideTab==="chat"?"on":""}`}    onClick={()=>setSideTab("chat")}>Chat</button>
-              <button className={`stab ${sideTab==="crew"?"on":""}`}    onClick={()=>setSideTab("crew")}>Crew</button>
+              <button className={`stab ${sideTab==="overlap"?"on":""}`}   onClick={()=>setSideTab("overlap")}>Taste</button>
+              <button className={`stab ${sideTab==="chat"?"on":""}`}     onClick={()=>setSideTab("chat")}>Chat</button>
+              <button className={`stab ${sideTab==="crew"?"on":""}`}     onClick={()=>setSideTab("crew")}>Crew</button>
+              <button className={`stab teal ${sideTab==="wishlist"?"on":""}`} onClick={()=>setSideTab("wishlist")}>♡ Saved</button>
             </div>
             <div className="sidebar-body">
 
@@ -1983,7 +1811,7 @@ export default function ArcadeCrew() {
                   <div className="s-section">
                     <div className="gift-card">
                       <div className="gift-text">
-                        Maya would love the <strong>Vetiver Candle</strong> — it matches her <strong>coastal + warm</strong> nodes exactly.
+                        Maya would love the <strong>Soy Candle</strong> — it matches her <strong>coastal + warm</strong> nodes exactly.
                       </div>
                     </div>
                   </div>
@@ -2050,22 +1878,30 @@ export default function ArcadeCrew() {
                         <button
                           className="crew-browse-btn"
                           style={{
-                            borderColor: activeCrew===member.id ? member.color : 'var(--border)',
-                            color: activeCrew===member.id ? member.color : 'var(--muted)',
+                            borderColor: (activeCrew===member.id || requestedCrew.includes(member.id)) ? member.color : 'var(--border)',
+                            color: (activeCrew===member.id || requestedCrew.includes(member.id)) ? member.color : 'var(--muted)',
+                          }}
+                          onClick={() => {
+                            setActiveCrew(member.id);
+                            if (member.id !== 'maya') setRequestedCrew(r => r.includes(member.id) ? r : [...r, member.id]);
                           }}
                         >
-                          {activeCrew===member.id ? '● Browsing together' : '○ Browse together'}
+                          {member.id === 'maya'
+                            ? (activeCrew===member.id ? '● Currently browsing together' : '○ Currently browsing together')
+                            : (requestedCrew.includes(member.id) ? '● Request sent' : '○ Request to browse together')
+                          }
                         </button>
                         {activeCrew === member.id && (
                           <button
                             className="sr-enter-btn"
                             style={{marginTop:8, width:'100%', justifyContent:'center', borderColor:`${member.color}40`, color:member.color, fontSize:'8px'}}
                             onClick={() => setShowroom({
+                              owner: member.id,
                               products: TASTE_PRODUCTS.filter(p => p.tags.some(t => member.tags.includes(t))),
                               tags: member.tags,
                               palette: [],
-                              title: `${member.name}'s Aesthetic`,
-                              spaceType: 'Similar Aesthetic',
+                              title: `${member.name}'s Space`,
+                              spaceType: member.type,
                               color: member.color,
                             })}
                           >⬡ &nbsp; Enter Their Showroom</button>
@@ -2078,7 +1914,7 @@ export default function ArcadeCrew() {
                   ))}
                   <div className="crew-find-section">
                     <div className="crew-find-desc">
-                      Discover strangers who share your exact aesthetic fingerprint and shop the same overlap zone.
+                      Discover strangers who share your exact aesthetic and shop the same overlap zone.
                     </div>
                     <button className="crew-find-btn">✦ &nbsp; Find more crew</button>
                     <div className="crew-count-badge">
@@ -2089,12 +1925,70 @@ export default function ArcadeCrew() {
                 </div>
               )}
 
+              {sideTab === "wishlist" && (
+                <div className="s-section">
+                  <div className="s-eye">Wishlist Items</div>
+                  {wishlist.length === 0 ? (
+                    <div className="wishlist-empty">
+                      <div style={{fontSize:28,marginBottom:8}}>♡</div>
+                      <div>Save items from any category to see them here</div>
+                    </div>
+                  ) : (
+                    <div className="wishlist-list">
+                      {wishlist.map(p => (
+                        <div key={p.id} className="wishlist-item" onClick={() => openProduct(p)}>
+                          <img className="wishlist-img" src={p.img} alt={p.name} onError={e=>e.target.style.display="none"}/>
+                          <div className="wishlist-info">
+                            <div className="wishlist-name">{p.name}</div>
+                            <div className="wishlist-price" style={{color:'var(--gold)'}}>{p.price}</div>
+                          </div>
+                          <button className="wishlist-remove" onClick={e=>{ e.stopPropagation(); setWishlist(w=>w.filter(x=>x.id!==p.id)); }}>✕</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
             </div>
           </div>
         </div>
       </div>
       {/* ── SHOWROOM 3D ── */}
-      {showroom && (
+      {showroom && showroom.owner === "soleil" && (
+        <ShowroomSoleil
+          products={showroom.products}
+          tags={showroom.tags}
+          title={showroom.title}
+          spaceType={showroom.spaceType}
+          color={showroom.color}
+          onClose={() => setShowroom(null)}
+          onSelectProduct={p => openProduct(p)}
+        />
+      )}
+      {showroom && showroom.owner === "daniel" && (
+        <ShowroomDaniel
+          products={showroom.products}
+          tags={showroom.tags}
+          title={showroom.title}
+          spaceType={showroom.spaceType}
+          color={showroom.color}
+          onClose={() => setShowroom(null)}
+          onSelectProduct={p => openProduct(p)}
+        />
+      )}
+      {showroom && showroom.owner === "maya" && (
+        <ShowroomMaya
+          products={showroom.products}
+          tags={showroom.tags}
+          title={showroom.title}
+          spaceType={showroom.spaceType}
+          color={showroom.color}
+          onClose={() => setShowroom(null)}
+          onSelectProduct={p => openProduct(p)}
+        />
+      )}
+      {showroom && !["soleil","daniel","maya"].includes(showroom.owner) && (
         <Showroom3D
           products={showroom.products}
           tags={showroom.tags}
@@ -2103,7 +1997,7 @@ export default function ArcadeCrew() {
           spaceType={showroom.spaceType}
           color={showroom.color}
           onClose={() => setShowroom(null)}
-          onSelectProduct={p => { setShowroom(null); openProduct(p); }}
+          onSelectProduct={p => openProduct(p)}
         />
       )}
 
@@ -2130,12 +2024,14 @@ export default function ArcadeCrew() {
                     </div>
                   )}
                   <div className="prod-actions">
-                    <button className="prod-save-btn">♡ &nbsp; Save to wishlist</button>
+                    <button className="prod-save-btn" onClick={() => setWishlist(w => w.some(x=>x.id===selectedProduct.id) ? w.filter(x=>x.id!==selectedProduct.id) : [...w, selectedProduct])}>
+                      {wishlist.some(x=>x.id===selectedProduct.id) ? '♥ \u00a0 Saved' : '♡ \u00a0 Save to wishlist'}
+                    </button>
                     <button
                       className={`prod-bag-btn ${addedToBag ? 'added' : ''}`}
                       onClick={handleAddToBag}
                     >
-                      {addedToBag ? '✓  Added to bag' : '+ &nbsp; Add to bag'}
+                      {addedToBag ? '✓  Added to bag' : 'Add to bag'}
                     </button>
                     <button className="prod-crew-btn" onClick={handleShareWithCrew}>
                       ✦ &nbsp; Share with crew
