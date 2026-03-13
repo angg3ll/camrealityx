@@ -1202,6 +1202,7 @@ export default function SocialArcade() {
   const [productTab, setProductTab]   = useState("all");
   const [activeCrew, setActiveCrew]   = useState("maya");
   const [requestedCrew, setRequestedCrew] = useState([]);
+  const [showGraphProducts, setShowGraphProducts] = useState(false);
   const [showroom, setShowroom]       = useState(null);
   const [compatPct]                   = useState(() => Math.floor(Math.random() * 9) + 75);
   const msgEndRef = useRef(null);
@@ -1559,20 +1560,22 @@ export default function SocialArcade() {
               <Constellation nodesA={aiResult ? dynamicNodes : YOU_NODES} w={480}/>
 
               {/* SVG dashed connector lines: thumbnail → node */}
-              <svg className="constellation-overlay" aria-hidden="true">
-                {tasteProductNodes.map(({product, node, thumbX, thumbY}) => (
-                  <line key={product.id}
-                    x1={`${node.x}%`}    y1={`${node.y}%`}
-                    x2={`${thumbX}%`}    y2={`${thumbY}%`}
-                    stroke="rgba(255,45,120,0.22)"
-                    strokeWidth="1"
-                    strokeDasharray="4 3"
-                  />
-                ))}
-              </svg>
+              {showGraphProducts && (
+                <svg className="constellation-overlay" aria-hidden="true">
+                  {tasteProductNodes.map(({product, node, thumbX, thumbY}) => (
+                    <line key={product.id}
+                      x1={`${node.x}%`}    y1={`${node.y}%`}
+                      x2={`${thumbX}%`}    y2={`${thumbY}%`}
+                      stroke="rgba(255,45,120,0.22)"
+                      strokeWidth="1"
+                      strokeDasharray="4 3"
+                    />
+                  ))}
+                </svg>
+              )}
 
               {/* Floating product thumbnails pinned to their matching nodes */}
-              {tasteProductNodes.map(({product, thumbX, thumbY}, i) => (
+              {showGraphProducts && tasteProductNodes.map(({product, thumbX, thumbY}, i) => (
                 <div key={product.id}
                   className="tp-floating"
                   style={{ left:`${thumbX}%`, top:`${thumbY}%`, animationDelay:`${0.25+i*0.1}s` }}
@@ -1589,7 +1592,27 @@ export default function SocialArcade() {
               ))}
             </div>
 
-            <div className="taste-chips">
+            <button
+              onClick={() => setShowGraphProducts(v => !v)}
+              style={{
+                marginTop: 16,
+                background: showGraphProducts ? 'var(--gold)' : 'none',
+                border: '1px solid var(--gold)',
+                color: showGraphProducts ? 'var(--bg)' : 'var(--gold)',
+                padding: '7px 22px',
+                borderRadius: 4,
+                cursor: 'pointer',
+                fontSize: 10,
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                fontFamily: "'IBM Plex Mono', monospace",
+                transition: 'all 0.2s',
+              }}
+            >
+              {showGraphProducts ? '✦ Hide Products' : '✦ Show Products'}
+            </button>
+
+            <div className="taste-chips" style={{marginTop: 20}}>
               {activeTags.map((tag,i)=>{
                 const c = COLOURS[i % COLOURS.length];
                 return(
